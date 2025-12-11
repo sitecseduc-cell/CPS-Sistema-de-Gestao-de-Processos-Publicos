@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { 
-  Search, Eye, ChevronRight, Mail, Phone, Save, Edit, 
+  Search, ChevronRight, Mail, Phone, Save, Edit, 
   User, MapPin, FileText, Clock, FileCheck 
 } from 'lucide-react';
+import CandidateTable from '../components/CandidateTable';
 import { CANDIDATOS_MOCK } from '../data/mockData';
 
 export default function Inscritos() {
@@ -177,55 +178,7 @@ export default function Inscritos() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Candidato / CPF</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Processo Seletivo</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Cargo / Localidade</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredCandidates.length > 0 ? filteredCandidates.map((cand) => (
-                <tr key={cand.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer" onClick={() => handleSelectCandidate(cand)}>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-bold text-slate-800">{cand.nome}</p>
-                      <p className="text-xs text-slate-500 font-mono">{cand.cpf}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{cand.processo}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    <span className="block font-medium">{cand.cargo}</span>
-                    <span className="text-xs text-slate-400">{cand.localidade}</span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      cand.status === 'Classificado' ? 'bg-emerald-100 text-emerald-700' : 
-                      cand.status === 'Desclassificado' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {cand.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                      <Eye size={18}/>
-                    </button>
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-slate-400">
-                    Nenhum candidato encontrado para "{searchTerm}"
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <CandidateTable candidates={filteredCandidates} onSelect={handleSelectCandidate} />
       </div>
     </div>
   );
