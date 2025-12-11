@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Search, ChevronRight, Mail, Phone, Save, Edit, 
-  User, MapPin, FileText, Clock, FileCheck 
+  User, MapPin, FileText, Clock, FileCheck, Eye // <--- Adicionado o Eye aqui
 } from 'lucide-react';
 import CandidateTable from '../components/CandidateTable';
 import { CANDIDATOS_MOCK } from '../data/mockData';
@@ -129,7 +129,7 @@ export default function Inscritos() {
                 <FileText size={20} className="mr-2 text-orange-500"/> Documentos
               </h3>
               <ul className="space-y-2">
-                {selectedCandidate.documentos.map((doc, i) => (
+                {selectedCandidate.documentos?.map((doc, i) => (
                   <li key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg text-sm font-medium text-slate-700 hover:bg-orange-50 hover:text-orange-700 transition-colors cursor-pointer group">
                     <span className="flex items-center"><FileCheck size={16} className="mr-2 text-slate-400 group-hover:text-orange-500"/> {doc}</span>
                     <Eye size={16} className="opacity-0 group-hover:opacity-100"/>
@@ -143,7 +143,7 @@ export default function Inscritos() {
                 <Clock size={20} className="mr-2 text-slate-500"/> Linha do Tempo
               </h3>
               <div className="relative border-l-2 border-slate-100 ml-3 space-y-6 pl-6 pb-2">
-                {selectedCandidate.historico.map((hist, i) => (
+                {selectedCandidate.historico?.map((hist, i) => (
                   <div key={i} className="relative">
                     <div className="absolute -left-[31px] top-1 h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-sm"></div>
                     <span className="text-xs font-bold text-slate-400 block mb-1">{hist.data}</span>
