@@ -1,4 +1,4 @@
-// --- DADOS DO DASHBOARD E PROCESSOS (Mantidos) ---
+// --- DADOS DO DASHBOARD ---
 export const DASHBOARD_DATA = {
   kpis: {
     processos_ativos: 14,
@@ -18,15 +18,13 @@ export const DASHBOARD_DATA = {
   ]
 };
 
+// --- DADOS DOS PROCESSOS ---
 export const PROCESSOS_MOCK = [
   { id: 1, nome: 'PSS 07/2025 - PROFESSOR NIVEL SUPERIOR', periodo: '17/11/2025 - 14/12/2025', fase_atual: 'Análise Documental', progresso: 45, permitir_alteracao: false },
   { id: 2, nome: 'PSS Estagiários 06/2025', periodo: '08/09/2025 - 10/09/2025', fase_atual: 'Homologado', progresso: 100, permitir_alteracao: false },
-  { id: 3, nome: 'PSS Estagiários-Bolsistas - ARCON 01/2025', periodo: '18/09/2025 - 23/09/2025', fase_atual: 'Recursos', progresso: 80, permitir_alteracao: false },
-  { id: 4, nome: 'PSS ESTAGIÁRIOS - 05/2025', periodo: '11/08/2025 - 17/08/2025', fase_atual: 'Encerrado', progresso: 100, permitir_alteracao: false },
-  { id: 5, nome: 'PSS SIMPLIFICADO 04/2025 - SECTET', periodo: '28/05/2025 - 08/06/2025', fase_atual: 'Entrevistas', progresso: 60, permitir_alteracao: false }
 ];
 
-// --- GERADOR DE CANDIDATOS (Para testar paginação) ---
+// --- GERADOR DE 50 CANDIDATOS (Para ativar a Paginação) ---
 const nomes = ["Carlos", "Ana", "Marcos", "Julia", "Roberto", "Fernanda", "Lucas", "Beatriz", "Pedro", "Mariana"];
 const sobrenomes = ["Silva", "Souza", "Costa", "Oliveira", "Pereira", "Lima", "Gomes", "Santos", "Martins", "Ferreira"];
 const cargos = ["Professor de Matemática", "Professor de Língua Portuguesa", "Merendeira", "Vigia", "Técnico Administrativo"];
@@ -40,7 +38,7 @@ export const CANDIDATOS_MOCK = Array.from({ length: 50 }, (_, i) => ({
   telefone: `(91) 98${i}00-0000`,
   processo: `PSS 0${(i % 5) + 1}/2025 - GERAL`,
   cargo: cargos[i % 5],
-  localidade: i % 2 === 0 ? 'Belém - Escola A' : 'Ananindeua - Escola B',
+  localidade: i % 2 === 0 ? 'Belém - Escola Estadual' : 'Ananindeua - Escola Regional',
   status: statusList[i % 4],
   perfil: 'Ampla Concorrência',
   data_inscricao: '20/11/2025',

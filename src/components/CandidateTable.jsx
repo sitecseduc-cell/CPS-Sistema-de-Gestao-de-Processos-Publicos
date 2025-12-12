@@ -68,7 +68,7 @@ export default function CandidateTable({ candidates, onSelect, total, page, page
         </table>
       </div>
 
-      {/* RODAPÉ DE PAGINAÇÃO */}
+      {/* RODAPÉ DA PAGINAÇÃO */}
       <div className="border-t border-slate-200 px-6 py-4 bg-slate-50 flex items-center justify-between rounded-b-2xl">
         <span className="text-sm text-slate-500">
           Mostrando <span className="font-bold text-slate-800">{startRange}</span> a <span className="font-bold text-slate-800">{endRange}</span> de <span className="font-bold text-slate-800">{total}</span> resultados
