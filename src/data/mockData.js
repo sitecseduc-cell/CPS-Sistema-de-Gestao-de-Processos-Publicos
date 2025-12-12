@@ -1,70 +1,49 @@
-// ... Mantenha o DASHBOARD_DATA e PROCESSOS_MOCK como estão ...
+// --- DADOS DO DASHBOARD E PROCESSOS (Mantidos) ---
+export const DASHBOARD_DATA = {
+  kpis: {
+    processos_ativos: 14,
+    candidatos_total: 28450,
+    vagas_preenchidas: "85%",
+    alertas_criticos: 3
+  },
+  heatmap_dres: [
+    { nome: 'DRE Belém', candidatos: 12500, status: 'crítico' },
+    { nome: 'DRE Ananindeua', candidatos: 8200, status: 'alto' },
+    { nome: 'DRE Castanhal', candidatos: 4500, status: 'medio' },
+    { nome: 'DRE Marabá', candidatos: 3100, status: 'medio' },
+  ],
+  analises_criticas: [
+    { id: 1, processo: 'PSS 07/2025', problema: 'Atraso na Análise Documental', setor: 'Comissão Avaliadora', tempo: '2 dias' },
+    { id: 2, processo: 'PSS Estagiários', problema: 'Alto índice de recursos', setor: 'Jurídico', tempo: '5 horas' },
+  ]
+};
 
-export const CANDIDATOS_MOCK = [
-  { 
-    id: 1, 
-    nome: 'CARLOS OLIVEIRA DA SILVA', 
-    cpf: '987.654.321-00', 
-    email: 'carlos.silva@email.com', 
-    telefone: '(91) 98877-6655', 
-    nascimento: '15/05/1985',
-    mae: 'Maria Oliveira da Silva',
-    endereco: 'Av. Almirante Barroso, 1234, Marco',
-    cidade: 'Belém - PA',
-    processo: 'PSS 07/2025 - PROFESSOR NIVEL SUPERIOR', 
-    cargo: 'Professor de Matemática',
-    localidade: 'Escola Estadual A (Belém)',
-    status: 'Classificado',
-    perfil: 'Ampla Concorrência',
-    data_inscricao: '20/11/2025',
-    documentos: ['RG (Frente e Verso)', 'Diploma de Licenciatura', 'Histórico Escolar', 'Título de Eleitor', 'Comprovante de Residência'],
-    historico: [
-      { data: '22/11/2025 10:30', evento: 'Inscrição Confirmada', usuario: 'Sistema' },
-      { data: '25/11/2025 14:15', evento: 'Documentação em Análise', usuario: 'Ana (RH)' },
-      { data: '28/11/2025 09:00', evento: 'Documentação Aprovada', usuario: 'Ana (RH)' }
-    ]
-  },
-  { 
-    id: 2, 
-    nome: 'ANA BEATRIZ SOUZA', 
-    cpf: '123.456.789-11', 
-    email: 'ana.bia@email.com', 
-    telefone: '(91) 99111-2233', 
-    nascimento: '20/10/2001',
-    mae: 'Cláudia Souza',
-    endereco: 'Rua da Providência, 55, Cidade Nova',
-    cidade: 'Ananindeua - PA',
-    processo: 'PSS Estagiários 06/2025', 
-    cargo: 'Estagiário de Pedagogia',
-    localidade: 'USE 04 (Ananindeua)',
-    status: 'Em Análise',
-    perfil: 'PCD',
-    data_inscricao: '10/09/2025',
-    documentos: ['RG', 'Declaração de Matrícula', 'Laudo Médico (CID 10)', 'Comprovante de Residência'],
-    historico: [
-      { data: '10/09/2025 11:00', evento: 'Inscrição Realizada', usuario: 'Sistema' }
-    ]
-  },
-  { 
-    id: 3, 
-    nome: 'MARCOS VINICIUS COSTA', 
-    cpf: '456.789.123-44', 
-    email: 'marcos.v@email.com', 
-    telefone: '(94) 98100-5544', 
-    nascimento: '05/02/1990',
-    mae: 'Joana Costa',
-    endereco: 'Folha 28, Quadra 10, Nova Marabá',
-    cidade: 'Marabá - PA',
-    processo: 'PSS 07/2025 - PROFESSOR NIVEL SUPERIOR', 
-    cargo: 'Professor de Física',
-    localidade: 'Escola Rio Tocantins (Marabá)',
-    status: 'Desclassificado',
-    perfil: 'Cotista Racial',
-    data_inscricao: '21/11/2025',
-    documentos: ['RG', 'Diploma', 'Autodeclaração'],
-    historico: [
-      { data: '21/11/2025 08:45', evento: 'Inscrição Realizada', usuario: 'Sistema' },
-      { data: '30/11/2025 16:20', evento: 'Documentação Reprovada (Falta de Diploma)', usuario: 'Roberto (Comissão)' }
-    ]
-  },
+export const PROCESSOS_MOCK = [
+  { id: 1, nome: 'PSS 07/2025 - PROFESSOR NIVEL SUPERIOR', periodo: '17/11/2025 - 14/12/2025', fase_atual: 'Análise Documental', progresso: 45, permitir_alteracao: false },
+  { id: 2, nome: 'PSS Estagiários 06/2025', periodo: '08/09/2025 - 10/09/2025', fase_atual: 'Homologado', progresso: 100, permitir_alteracao: false },
+  { id: 3, nome: 'PSS Estagiários-Bolsistas - ARCON 01/2025', periodo: '18/09/2025 - 23/09/2025', fase_atual: 'Recursos', progresso: 80, permitir_alteracao: false },
+  { id: 4, nome: 'PSS ESTAGIÁRIOS - 05/2025', periodo: '11/08/2025 - 17/08/2025', fase_atual: 'Encerrado', progresso: 100, permitir_alteracao: false },
+  { id: 5, nome: 'PSS SIMPLIFICADO 04/2025 - SECTET', periodo: '28/05/2025 - 08/06/2025', fase_atual: 'Entrevistas', progresso: 60, permitir_alteracao: false }
 ];
+
+// --- GERADOR DE CANDIDATOS (Para testar paginação) ---
+const nomes = ["Carlos", "Ana", "Marcos", "Julia", "Roberto", "Fernanda", "Lucas", "Beatriz", "Pedro", "Mariana"];
+const sobrenomes = ["Silva", "Souza", "Costa", "Oliveira", "Pereira", "Lima", "Gomes", "Santos", "Martins", "Ferreira"];
+const cargos = ["Professor de Matemática", "Professor de Língua Portuguesa", "Merendeira", "Vigia", "Técnico Administrativo"];
+const statusList = ["Classificado", "Desclassificado", "Em Análise", "Cadastro de Reserva"];
+
+export const CANDIDATOS_MOCK = Array.from({ length: 50 }, (_, i) => ({
+  id: i + 1,
+  nome: `${nomes[i % 10]} ${sobrenomes[i % 10]} ${sobrenomes[(i + 2) % 10]}`,
+  cpf: `${100 + i}.***.***-${(i % 90) + 10}`,
+  email: `candidato${i}@email.com`,
+  telefone: `(91) 98${i}00-0000`,
+  processo: `PSS 0${(i % 5) + 1}/2025 - GERAL`,
+  cargo: cargos[i % 5],
+  localidade: i % 2 === 0 ? 'Belém - Escola A' : 'Ananindeua - Escola B',
+  status: statusList[i % 4],
+  perfil: 'Ampla Concorrência',
+  data_inscricao: '20/11/2025',
+  documentos: ['RG', 'Diploma', 'Histórico'],
+  historico: [{ data: '20/11/2025', evento: 'Inscrição Realizada', usuario: 'Sistema' }]
+}));

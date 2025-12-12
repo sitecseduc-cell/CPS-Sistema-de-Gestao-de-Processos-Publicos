@@ -8,55 +8,81 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verifica sessão ao iniciar
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
+        const { data } = await supabase.auth.getSession();
+        if (data?.session?.user) {
+          setUser(data.session.user);
+        }
       } catch (error) {
-        console.error("Erro ao verificar sessão:", error);
+        console.error("Erro na verificação de sessão:", error);
       } finally {
-        setLoading(false); // Garante que a tela branca some
+        setLoading(false);
       }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (authListener?.subscription) authListener.subscription.unsubscribe();
+    };
   }, []);
 
-  // Login Seguro
   const signIn = async (email, password) => {
-    // MODO DEMONSTRAÇÃO: Se usar este email específico, entra direto
+    // --- BYPASS DE LOGIN (MODO DE TESTE) ---
+    // Isso permite entrar sem o Supabase estar configurado
     if (email === 'admin@seduc.pa.gov.br' && password === '123456') {
-      const fakeUser = { id: '1', email: 'admin@seduc.pa.gov.br' };
-      setUser(fakeUser);
-      return { user: fakeUser };
+      const fakeUser = { id: 'admin-123', email: email };
+      setUser(fakeUser); // Força o estado de logado
+      return { user: fakeUser, session: { access_token: 'fake-token' } };
     }
+    // ---------------------------------------
 
-    // Tenta login real no Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      if (data?.user) setUser(data.user);
+      
+      return data;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Limpa o usuário localmente (para o modo teste funcionar)
     setUser(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.log("Logout local realizado");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          <p className="text-sm font-medium text-slate-500">Iniciando sistema...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ user, signIn, signOut, loading }}>
-      {!loading ? children : <div className="flex items-center justify-center h-screen bg-slate-50 text-blue-600">Carregando sistema...</div>}
+      {children}
     </AuthContext.Provider>
   );
 };
