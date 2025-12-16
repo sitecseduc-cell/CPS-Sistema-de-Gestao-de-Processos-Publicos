@@ -6,7 +6,7 @@ import logoSistema from '../assets/brassao.svg'; // <--- 1. Importação da Logo
 import {
   LayoutDashboard, Users, Layers, Bell, LogOut, Search,
   FileText, Map, AlertTriangle, FileSpreadsheet, Shield, BookOpen, CheckCircle,
-  KanbanSquare, Briefcase
+  KanbanSquare, Briefcase, ShieldAlert
 } from 'lucide-react';
 
 const SidebarItem = ({ icon: Icon, label, to }) => {
@@ -40,6 +40,7 @@ const SidebarGroup = ({ title, children }) => (
 
 export default function Layout() {
   const navigate = useNavigate();
+  // Pegamos o usuário e a função signOut do contexto
   const { user, signOut } = useAuth();
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário';
@@ -91,13 +92,11 @@ export default function Layout() {
           </SidebarGroup>
 
           <SidebarGroup title="Análise & Avaliação">
-            <SidebarItem icon={BookOpen} label="Análise de Plano" to="/plano" />
             <SidebarItem icon={CheckCircle} label="Pré Avaliação" to="/pre" />
           </SidebarGroup>
 
           <SidebarGroup title="Administrativo">
-            <SidebarItem icon={Map} label="Vincular Localidades" to="/local" />
-            <SidebarItem icon={AlertTriangle} label="Recursos" to="/recursos" />
+            <SidebarItem icon={ShieldAlert} label="Auditoria" to="/auditoria" />
             <SidebarItem icon={FileSpreadsheet} label="Relatórios" to="/relatorios" />
             <SidebarItem icon={Shield} label="Segurança" to="/seguranca" />
           </SidebarGroup>
