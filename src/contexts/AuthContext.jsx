@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import logoSistema from '../assets/brassao.svg'; // Importação da logo
 
 const AuthContext = createContext({});
 
@@ -8,7 +9,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verifica sessão ativa ao carregar
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -24,7 +24,6 @@ export const AuthProvider = ({ children }) => {
 
     checkSession();
 
-    // Escuta mudanças (login, logout, etc)
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -35,7 +34,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Login
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -45,14 +43,13 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // --- NOVIDADE: Cadastro com Nome ---
   const signUp = async (email, password, fullName) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: fullName, // Salva o nome nos metadados do Supabase
+          full_name: fullName,
         },
       },
     });
@@ -60,7 +57,14 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // Logout
+  const resetPassword = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/update-password',
+    });
+    if (error) throw error;
+    return data;
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -70,19 +74,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // --- AQUI ESTÁ A ALTERAÇÃO ---
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
+          {/* Spinner girando */}
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          <p className="text-sm font-medium text-slate-500">Carregando sistema...</p>
+          
+          {/* Substituímos o <p> pela tag <img> */}
+          <img 
+            src={logoSistema} 
+            alt="Carregando..." 
+            className="h-10 w-auto" // h-10 define a altura, w-auto ajusta a largura automaticamente
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut, loading }}>
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, resetPassword, loading }}>
       {children}
     </AuthContext.Provider>
   );
