@@ -82,7 +82,7 @@ export default function Login() {
           <img 
             src={logoSistema} 
             alt="Logo SAGEP" 
-            className="h-16 w-auto mx-auto mb-4 object-contain" 
+            className="h-16 w-16 object-cover mx-auto mb-4 rounded-lg" 
           />
           {/* -------------------------------------------------------------------- */}
 

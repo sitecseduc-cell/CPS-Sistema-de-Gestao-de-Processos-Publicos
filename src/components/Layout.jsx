@@ -65,7 +65,7 @@ export default function Layout() {
             <img 
               src={logoSistema} 
               alt="Logo SAGEP" 
-              className="w-8 h-8 object-contain" 
+              className="h-8 w-8 object-cover rounded-lg" 
             />
             {/* -------------------------------------------------------------------- */}
 
