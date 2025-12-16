@@ -1,6 +1,8 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext'; // Importamos o contexto
+import { useAuth } from '../contexts/AuthContext';
+import logoSistema from '../assets/brassao.svg'; // <--- 1. Importação da Logo
+
 import {
   LayoutDashboard, Users, Layers, Bell, LogOut, Search,
   FileText, Map, AlertTriangle, FileSpreadsheet, Shield, BookOpen, CheckCircle,
@@ -38,13 +40,8 @@ const SidebarGroup = ({ title, children }) => (
 
 export default function Layout() {
   const navigate = useNavigate();
-  // Pegamos o usuário e a função signOut do contexto
-  const { user, signOut } = useAuth(); 
+  const { user, signOut } = useAuth();
 
-  // Lógica para pegar o nome
-  // 1. Tenta pegar o nome salvo no cadastro (user_metadata)
-  // 2. Se não tiver, pega a parte antes do @ do email
-  // 3. Se tudo falhar, mostra "Usuário"
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário';
 
   const handleLogout = async () => {
@@ -63,7 +60,15 @@ export default function Layout() {
       <aside className="w-72 bg-slate-900 text-white flex flex-col hidden md:flex shadow-2xl z-50">
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-lg">P</div>
+            
+            {/* --- 2. AQUI A MUDANÇA: Saiu o quadrado azul "P", entrou a imagem --- */}
+            <img 
+              src={logoSistema} 
+              alt="Logo SAGEP" 
+              className="w-8 h-8 object-contain" 
+            />
+            {/* -------------------------------------------------------------------- */}
+
             <div className="leading-tight">
               <span className="text-lg font-bold block">SAGEP 2.0</span>
               <span className="text-[10px] text-slate-400 uppercase tracking-widest">Gov. Pará</span>
@@ -121,7 +126,6 @@ export default function Layout() {
           <div className="flex items-center space-x-6">
             <div className="flex items-center text-sm text-slate-600 bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
               <span className="mr-2 hidden sm:inline">Bem-vindo,</span>
-              {/* NOME DO USUÁRIO DINÂMICO AQUI: */}
               <strong className="text-slate-800 uppercase">{userName}</strong>
             </div>
 

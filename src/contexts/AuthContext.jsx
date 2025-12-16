@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import logoSistema from '../assets/brassao.svg'; // Importação da logo
 
 const AuthContext = createContext({});
 
@@ -56,12 +57,9 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // --- NOVIDADE: Função de Resetar Senha ---
   const resetPassword = async (email) => {
-    // O redirectTo aponta para onde o usuário vai após clicar no email.
-    // Se não tiver uma página específica, ele pode ser redirecionado para a home logado.
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/update-password', 
+      redirectTo: window.location.origin + '/update-password',
     });
     if (error) throw error;
     return data;
@@ -76,12 +74,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // --- AQUI ESTÁ A ALTERAÇÃO ---
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
+          {/* Spinner girando */}
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          <p className="text-sm font-medium text-slate-500">Carregando sistema...</p>
+          
+          {/* Substituímos o <p> pela tag <img> */}
+          <img 
+            src={logoSistema} 
+            alt="Carregando..." 
+            className="h-10 w-auto" // h-10 define a altura, w-auto ajusta a largura automaticamente
+          />
         </div>
       </div>
     );
