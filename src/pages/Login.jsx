@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logoSistema from '../assets/brassao.svg'; // <--- 1. Importação da Logo
 import { Lock, Mail, User, Loader2, AlertCircle, ArrowRight, ArrowLeft, KeyRound } from 'lucide-react';
 
 export default function Login() {
@@ -76,7 +77,15 @@ export default function Login() {
         
         {/* Cabeçalho */}
         <div className="bg-slate-900 p-8 text-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center font-bold text-3xl text-white shadow-lg mx-auto mb-4">P</div>
+          
+          {/* --- 2. AQUI A MUDANÇA: Saiu o quadrado azul "P", entrou a imagem --- */}
+          <img 
+            src={logoSistema} 
+            alt="Logo SAGEP" 
+            className="h-16 w-auto mx-auto mb-4 object-contain" 
+          />
+          {/* -------------------------------------------------------------------- */}
+
           <h1 className="text-2xl font-bold text-white tracking-tight">SGPS <span className="text-blue-400">SAGEP</span></h1>
           <p className="text-slate-400 text-sm mt-2">{header.subtitle}</p>
         </div>
