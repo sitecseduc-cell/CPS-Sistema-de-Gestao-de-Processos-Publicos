@@ -2,11 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
-// Importe o Contexto de Autenticação
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Importe o Layout e as Páginas
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -22,16 +20,17 @@ import PreAvaliacao from './pages/PreAvaliacao';
 import Relatorios from './pages/Relatorios';
 import Seguranca from './pages/Seguranca';
 
+// --- IMPORTANTE: NOVA PÁGINA ---
+import VagasEspeciais from './pages/VagasEspeciais';
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
 
-          {/* Rota Pública (Login) */}
           <Route path="/login" element={<Login />} />
 
-          {/* Rotas Protegidas (Sistema) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
@@ -39,7 +38,10 @@ export default function App() {
               <Route path="vagas" element={<ControleVagas />} />
               <Route path="inscritos" element={<Inscritos />} />
 
-              {/* Novas Funcionalidades Independentes */}
+              {/* --- NOVA ROTA DE VAGAS ESPECIAIS --- */}
+              <Route path="vagas-especiais" element={<VagasEspeciais />} />
+              {/* ------------------------------------ */}
+
               <Route path="pesquisa" element={<PesquisaCandidatos />} />
               <Route path="qtd" element={<QuantidadeInscritos />} />
               <Route path="pre" element={<PreAvaliacao />} />
@@ -49,12 +51,10 @@ export default function App() {
               <Route path="relatorios" element={<Relatorios />} />
               <Route path="seguranca" element={<Seguranca />} />
 
-              {/* Rota 404 para páginas não criadas */}
               <Route path="*" element={<EmConstrucao titulo="Página em Desenvolvimento" />} />
             </Route>
           </Route>
 
-          {/* Redirecionamento padrão */}
           <Route path="*" element={<Navigate to="/login" replace />} />
 
         </Routes>
