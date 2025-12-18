@@ -1,12 +1,12 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logoSistema from '../assets/brassao.svg'; // <--- 1. Importação da Logo
+import logoSistema from '../assets/brassao.svg';
 
 import {
   LayoutDashboard, Users, Layers, Bell, LogOut, Search,
   FileText, Map, AlertTriangle, FileSpreadsheet, Shield, BookOpen, CheckCircle,
-  KanbanSquare, Briefcase, ShieldAlert
+  KanbanSquare, Briefcase, ShieldAlert, Star // <--- ADICIONEI O 'STAR' AQUI
 } from 'lucide-react';
 
 const SidebarItem = ({ icon: Icon, label, to }) => {
@@ -40,7 +40,6 @@ const SidebarGroup = ({ title, children }) => (
 
 export default function Layout() {
   const navigate = useNavigate();
-  // Pegamos o usuário e a função signOut do contexto
   const { user, signOut } = useAuth();
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário';
@@ -61,15 +60,11 @@ export default function Layout() {
       <aside className="w-72 bg-slate-900 text-white flex flex-col hidden md:flex shadow-2xl z-50">
         <div className="p-6 border-b border-slate-800">
           <div className="flex items-center space-x-3">
-            
-            {/* --- 2. AQUI A MUDANÇA: Saiu o quadrado azul "P", entrou a imagem --- */}
             <img 
               src={logoSistema} 
               alt="Logo SAGEP" 
               className="h-8 w-8 object-cover rounded-lg" 
             />
-            {/* -------------------------------------------------------------------- */}
-
             <div className="leading-tight">
               <span className="text-lg font-bold block">SAGEP 2.0</span>
               <span className="text-[10px] text-slate-400 uppercase tracking-widest">Gov. Pará</span>
@@ -85,6 +80,12 @@ export default function Layout() {
             <SidebarItem icon={Briefcase} label="Controle de Vagas" to="/vagas" />
           </SidebarGroup>
 
+          {/* --- AQUI ESTÁ A NOVIDADE --- */}
+          <SidebarGroup title="Convocação Especial">
+            <SidebarItem icon={Star} label="Análise de Vagas" to="/vagas-especiais" />
+          </SidebarGroup>
+          {/* --------------------------- */}
+
           <SidebarGroup title="Inscrições & Candidatos">
             <SidebarItem icon={Users} label="Gestão de Inscritos" to="/inscritos" />
             <SidebarItem icon={Search} label="Pesquisar Candidatos" to="/pesquisa" />
@@ -93,6 +94,8 @@ export default function Layout() {
 
           <SidebarGroup title="Análise & Avaliação">
             <SidebarItem icon={CheckCircle} label="Pré Avaliação" to="/pre" />
+            <SidebarItem icon={FileText} label="Análise de Documentos" to="/docs" />
+            <SidebarItem icon={BookOpen} label="Análise de Plano" to="/plano" />
           </SidebarGroup>
 
           <SidebarGroup title="Administrativo">
@@ -115,30 +118,24 @@ export default function Layout() {
 
       {/* ÁREA DE CONTEÚDO */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
-
-        {/* Cabeçalho Fixo */}
         <header className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-40 shadow-sm">
           <div>
             <h1 className="text-xl font-bold text-slate-800">SGPS - Sistema de Gestão</h1>
           </div>
-
           <div className="flex items-center space-x-6">
             <div className="flex items-center text-sm text-slate-600 bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
               <span className="mr-2 hidden sm:inline">Bem-vindo,</span>
               <strong className="text-slate-800 uppercase">{userName}</strong>
             </div>
-
             <button className="p-2 text-slate-400 hover:text-blue-600 relative transition-colors rounded-full hover:bg-slate-50">
               <Bell size={20} />
             </button>
           </div>
         </header>
 
-        {/* Onde as páginas carregam */}
         <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50">
           <Outlet />
         </div>
-
       </main>
     </div>
   );
