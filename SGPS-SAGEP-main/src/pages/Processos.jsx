@@ -61,21 +61,16 @@ export default function Processos() {
 
     } else {
       // --- MODO CRIAÇÃO (INSERT) ---
-      // Ajuste de Validação: Garante que as datas não vão como string vazia se o usuário não preencher
-      const payload = {
-        nome: formData.nome,
-        descricao: formData.descricao,
-        fase_atual: 'Planejamento', // Valor padrão
-        progresso: 0
-      };
-
-      // Adiciona ao payload apenas se existir valor, evitando erro de formato inválido no banco
-      if (formData.inicio) payload.inicio = formData.inicio;
-      if (formData.fim) payload.fim = formData.fim;
-
       const { data, error } = await supabase
         .from('processos')
-        .insert([payload])
+        .insert([{
+          nome: formData.nome,
+          inicio: formData.inicio,
+          fim: formData.fim,
+          descricao: formData.descricao,
+          fase_atual: 'Planejamento', // Valor padrão
+          progresso: 0
+        }])
         .select();
 
       if (error) {

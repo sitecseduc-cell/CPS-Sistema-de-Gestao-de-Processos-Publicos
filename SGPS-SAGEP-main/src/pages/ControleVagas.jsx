@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, FileSpreadsheet, Download, Loader2, Check, Edit, Trash } from 'lucide-react';
+import { Search, Plus, Filter, MoreHorizontal, FileSpreadsheet, Download, Loader2, Check, Edit, Trash } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
 import NewVacancyModal from '../components/NewVacancyModal';
@@ -11,6 +11,36 @@ export default function ControleVagas() {
     const [showNewVacancyModal, setShowNewVacancyModal] = useState(false);
     const [editingVacancy, setEditingVacancy] = useState(null);
 
+    // ... (UI States omitted)
+
+    const handleEditVacancy = (vaga) => {
+        setEditingVacancy(vaga);
+        setShowNewVacancyModal(true);
+    };
+
+    const handleDeleteVacancy = async (id) => {
+        if (!window.confirm('Tem certeza que deseja excluir esta vaga?')) return;
+
+        try {
+            const { error } = await supabase.from('controle_vagas').delete().eq('id', id);
+            if (error) throw error;
+            toast.success('Vaga excluída com sucesso.');
+            fetchVagas();
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao excluir vaga.');
+        }
+    };
+
+    const handleNewVacancySaved = (savedData) => {
+        fetchVagas();
+        setEditingVacancy(null); // Limpa estado de edição
+    };
+
+    const handleCloseModal = () => {
+        setShowNewVacancyModal(false);
+        setEditingVacancy(null);
+    };
     const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [visibleColumns, setVisibleColumns] = useState({
         matvin: true,
@@ -31,13 +61,14 @@ export default function ControleVagas() {
     // Paginação
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const itemsPerPage = 8;
+    const itemsPerPage = 8; // Reduzi levemente para caber melhor na tela, se for o caso
 
     // Buscar dados do Supabase
     useEffect(() => {
         fetchVagas();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, searchTerm]);
+    // Removendo 'visibleColumns' da dependência para não recarregar a API ao mudar colunas
 
     const fetchVagas = async () => {
         setLoading(true);
@@ -69,34 +100,7 @@ export default function ControleVagas() {
         }
     };
 
-    const handleEditVacancy = (vaga) => {
-        setEditingVacancy(vaga);
-        setShowNewVacancyModal(true);
-    };
 
-    const handleDeleteVacancy = async (id) => {
-        if (!window.confirm('Tem certeza que deseja excluir esta vaga?')) return;
-
-        try {
-            const { error } = await supabase.from('controle_vagas').delete().eq('id', id);
-            if (error) throw error;
-            toast.success('Vaga excluída com sucesso.');
-            fetchVagas(); // Recarrega a lista
-        } catch (error) {
-            console.error(error);
-            toast.error('Erro ao excluir vaga.');
-        }
-    };
-
-    const handleNewVacancySaved = () => {
-        fetchVagas();
-        setEditingVacancy(null);
-    };
-
-    const handleCloseModal = () => {
-        setShowNewVacancyModal(false);
-        setEditingVacancy(null);
-    };
 
     const toggleColumn = (colKey) => {
         setVisibleColumns(prev => ({
@@ -242,7 +246,7 @@ export default function ControleVagas() {
                             <tr>
                                 {visibleColumns.matvin && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">MatVin</th>}
                                 {visibleColumns.servidor && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50 min-w-[200px]">Servidor</th>}
-                                {visibleColumns.cargo && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50 min-w-[250px]">Cargo/Função</th>}
+                                {visibleColumns.cargo && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50 min-w-[150px]">Cargo/Função</th>}
                                 {visibleColumns.atividade && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">Atividade</th>}
                                 {visibleColumns.vacancia && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">Vacância</th>}
                                 {visibleColumns.status && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">Status</th>}
@@ -277,16 +281,13 @@ export default function ControleVagas() {
                                     <tr key={vaga.id} className="hover:bg-slate-50 transition-colors group">
                                         {visibleColumns.matvin && <td className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{vaga.matvin}</td>}
                                         {visibleColumns.servidor && <td className="px-6 py-4 font-bold text-slate-800 uppercase text-xs">{vaga.servidor}</td>}
-
                                         {visibleColumns.cargo && (
                                             <td className="px-6 py-4">
-                                                {/* MELHORIA VISUAL: Mais largo e sem corte de texto */}
-                                                <div className="text-xs font-bold text-slate-700 bg-blue-50/50 p-2 rounded border border-blue-100 min-w-[200px]" title={vaga.cargo_funcao}>
+                                                <div className="text-xs font-medium text-slate-600 line-clamp-2 max-w-[200px] bg-slate-100 p-1.5 rounded" title={vaga.cargo_funcao}>
                                                     {vaga.cargo_funcao}
                                                 </div>
                                             </td>
                                         )}
-
                                         {visibleColumns.atividade && <td className="px-6 py-4 text-slate-600 text-xs">{vaga.atividade}</td>}
                                         {visibleColumns.vacancia && <td className="px-6 py-4 whitespace-nowrap text-xs">{vaga.vacancia}</td>}
                                         {visibleColumns.status && (
