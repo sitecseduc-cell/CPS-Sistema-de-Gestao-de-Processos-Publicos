@@ -6,6 +6,7 @@ import {
 import StatCard from '../components/StatCard';
 import { CardSkeleton, Skeleton } from '../components/ui/Loading';
 import { supabase } from '../lib/supabaseClient';
+import DashboardMap from '../components/DashboardMap';
 
 const FunnelChart = ({ loading, data }) => {
   // Valores padrão apenas para não quebrar se vier vazio
@@ -20,8 +21,8 @@ const FunnelChart = ({ loading, data }) => {
   const maxVal = funnelSteps[0]?.count || 1;
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-full">
-      <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center"><BarChart3 size={18} className="mr-2 text-slate-500" /> Funil de Seleção Global</h3>
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-full transition-colors duration-300">
+      <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center"><BarChart3 size={18} className="mr-2 text-slate-500 dark:text-slate-400" /> Funil de Seleção Global</h3>
       <div className="space-y-4">
         {loading
           ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-8 w-full rounded-full" />)
@@ -29,11 +30,11 @@ const FunnelChart = ({ loading, data }) => {
             const percent = Math.round((step.count / maxVal) * 100) || 0;
             return (
               <div key={idx} className="relative group cursor-default">
-                <div className="flex justify-between text-xs mb-1.5 font-semibold text-slate-600">
+                <div className="flex justify-between text-xs mb-1.5 font-semibold text-slate-600 dark:text-slate-300">
                   <span>{step.label}</span>
                   <span>{step.count.toLocaleString()} ({percent}%)</span>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                   <div className={`h-full ${step.color} rounded-full transition-all duration-1000 group-hover:opacity-80`} style={{ width: `${percent}%` }}></div>
                 </div>
               </div>
@@ -44,41 +45,6 @@ const FunnelChart = ({ loading, data }) => {
     </div>
   );
 };
-
-const HeatMap = ({ loading, data }) => (
-  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-full">
-    <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center"><Map size={18} className="mr-2 text-slate-500" /> Top Cidades (Demandas)</h3>
-    <div className="grid grid-cols-2 gap-4">
-      {loading
-        ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
-        : (data && data.length > 0) ? (
-          data.map((city, idx) => {
-            // Cores baseadas no index para diferenciar (vermelho, laranja, azul, slate)
-            const colors = [
-              { bg: 'bg-red-50', border: 'border-red-100', text: 'text-red-600', sub: 'text-red-400' },
-              { bg: 'bg-orange-50', border: 'border-orange-100', text: 'text-orange-600', sub: 'text-orange-400' },
-              { bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-600', sub: 'text-blue-400' },
-              { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-600', sub: 'text-slate-400' },
-            ];
-            const color = colors[idx] || colors[3];
-
-            return (
-              <div key={idx} className={`${color.bg} border ${color.border} rounded-xl p-4 flex flex-col justify-center items-center text-center`}>
-                <span className={`text-xl font-black ${color.text} mb-1 truncate w-full`}>{city.nome}</span>
-                <span className={`text-xs font-bold ${color.sub} uppercase tracking-wide`}>Demanda</span>
-                <span className={`text-[10px] ${color.sub} mt-1 opacity-75`}>{city.count} Vagas/Insc</span>
-              </div>
-            )
-          })
-        ) : (
-          <div className="col-span-2 text-center text-slate-400 py-10">
-            <p>Sem dados geográficos suficientes.</p>
-          </div>
-        )
-      }
-    </div>
-  </div>
-);
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -207,12 +173,17 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-96">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[450px]">
         <div className="lg:col-span-1 h-full">
           <FunnelChart loading={loading} data={funnelData} />
         </div>
         <div className="lg:col-span-2 h-full">
-          <HeatMap loading={loading} data={geoData} />
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-full transition-colors duration-300">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center">
+              <Map size={18} className="mr-2 text-slate-500 dark:text-slate-400" /> Distribuição Geográfica
+            </h3>
+            <DashboardMap />
+          </div>
         </div>
       </div>
     </div>
