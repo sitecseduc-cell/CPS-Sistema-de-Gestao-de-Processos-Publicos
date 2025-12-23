@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   Search, ChevronRight, Mail, Phone, Save, Edit,
   User, MapPin, FileText, Clock, FileCheck, Eye,
-  Shield, CheckCircle, X, AlertTriangle, Loader, Plus
+  Shield, CheckCircle, X, AlertTriangle, Loader, Plus // <--- Import Plus
 } from 'lucide-react';
 import CandidateTable from '../components/CandidateTable';
-import NewCandidateModal from '../components/NewCandidateModal';
+import NewCandidateModal from '../components/NewCandidateModal'; // <--- Import Modal Novo
 import { TableSkeleton, Spinner } from '../components/ui/Loading';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
@@ -20,20 +20,27 @@ function useDebounce(value, delay) {
 }
 
 export default function Inscritos() {
+  // Estado local para armazenar os candidatos (para permitir adição)
   const [allCandidates, setAllCandidates] = useState([]);
+
   const [inputValue, setInputValue] = useState('');
   const searchTerm = useDebounce(inputValue, 500);
+
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [filteredData, setFilteredData] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+
   const [loading, setLoading] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Estado do Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Efeito de Busca e Paginação
   useEffect(() => {
     const fetchCandidates = async () => {
       setLoading(true);
@@ -52,6 +59,7 @@ export default function Inscritos() {
     fetchCandidates();
   }, []);
 
+  // Filtra com base nos candidatos carregados
   useEffect(() => {
     const filtered = allCandidates.filter(c =>
       c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,27 +76,24 @@ export default function Inscritos() {
     setPage(1);
   }, [searchTerm]);
 
+  // Função para adicionar novo candidato (CRUD: Create)
   const handleAddCandidate = async (newCandidate) => {
     try {
-      // CORREÇÃO AQUI: Extrair 'vaga' e usar como 'cargo'
-      const { vaga, ...restCandidate } = newCandidate;
-
-      const candidateToInsert = {
-        ...restCandidate,
-        cargo: vaga, // Mapeamento correto
-        processo: 'Novo Processo Manual',
-        localidade: 'A Definir',
-        status: 'Em Análise',
-        perfil: 'Manual',
-        documentos: [],
-        historico: [{ data: new Date().toLocaleDateString('pt-BR'), evento: 'Cadastro Manual', usuario: 'Admin' }]
-      };
-
       const { data, error } = await supabase
         .from('candidatos')
-        .insert([candidateToInsert])
+        .insert([
+          {
+            ...newCandidate,
+            processo: 'Novo Processo Manual',
+            localidade: 'A Definir',
+            status: 'Em Análise',
+            perfil: 'Manual',
+            // data_inscricao removido pois usamos created_at do banco
+            documentos: [],
+            historico: [{ data: new Date().toLocaleDateString('pt-BR'), evento: 'Cadastro Manual', usuario: 'Admin' }]
+          }
+        ])
         .select();
-
       if (error) {
         console.error('Erro ao cadastrar candidato:', error);
         toast.error('Erro ao cadastrar: ' + error.message);
@@ -112,10 +117,14 @@ export default function Inscritos() {
 
   const handleSave = () => {
     setIsSaving(true);
+
+    // Simulação de delay
     const promise = new Promise((resolve) => setTimeout(resolve, 1000));
+
     toast.promise(promise, {
       loading: 'Salvando alterações...',
       success: () => {
+        // Atualiza na lista principal também
         setAllCandidates(prev => prev.map(c => c.id === editData.id ? editData : c));
         setSelectedCandidate(editData);
         setIsSaving(false);
@@ -130,10 +139,13 @@ export default function Inscritos() {
     if (window.confirm(`Mudar status para: ${newStatus}?`)) {
       const updated = { ...selectedCandidate, status: newStatus };
       setSelectedCandidate(updated);
+      // Atualiza na lista principal
       setAllCandidates(prev => prev.map(c => c.id === updated.id ? updated : c));
       toast.success(`Status alterado para ${newStatus}`);
     }
   };
+
+  // --- RENDERIZAÇÃO --- //
 
   if (selectedCandidate) {
     return (
@@ -211,9 +223,11 @@ export default function Inscritos() {
     );
   }
 
+  // Visão da Lista
   return (
     <div className="animate-fadeIn space-y-6 pb-10">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[calc(100vh-140px)]">
+
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">Gestão de Inscritos</h2>
@@ -221,6 +235,7 @@ export default function Inscritos() {
               Gerenciando <strong className="text-slate-800">{totalCount}</strong> candidatos
             </p>
           </div>
+
           <div className="flex gap-3 w-full md:w-auto">
             <div className="relative w-full md:w-96">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
@@ -234,6 +249,8 @@ export default function Inscritos() {
                 onChange={(e) => setInputValue(e.target.value)}
               />
             </div>
+
+            {/* BOTÃO ADICIONAR (NOVO) */}
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all"
@@ -242,6 +259,7 @@ export default function Inscritos() {
             </button>
           </div>
         </div>
+
         <div className="flex-1 overflow-hidden flex flex-col">
           {loading ? (
             <TableSkeleton rows={pageSize} />
@@ -257,6 +275,8 @@ export default function Inscritos() {
           )}
         </div>
       </div>
+
+      {/* RENDERIZA O MODAL AQUI */}
       <NewCandidateModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

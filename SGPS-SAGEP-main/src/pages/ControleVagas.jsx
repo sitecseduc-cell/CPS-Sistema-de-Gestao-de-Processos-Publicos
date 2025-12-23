@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, FileSpreadsheet, Download, Loader2, Check, Edit, Trash } from 'lucide-react';
+import { Search, Plus, Filter, MoreHorizontal, FileSpreadsheet, Download, Loader2, Check, Edit, Trash } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
 import NewVacancyModal from '../components/NewVacancyModal';
@@ -11,13 +11,37 @@ export default function ControleVagas() {
     const [showNewVacancyModal, setShowNewVacancyModal] = useState(false);
     const [editingVacancy, setEditingVacancy] = useState(null);
 
-    const [showColumnSelector, setShowColumnSelector] = useState(false);
-    const [showFilters, setShowFilters] = useState(false);
-    const [activeFilters, setActiveFilters] = useState({
-        status: '',
-        secretaria: ''
-    });
+    // ... (UI States omitted)
 
+    const handleEditVacancy = (vaga) => {
+        setEditingVacancy(vaga);
+        setShowNewVacancyModal(true);
+    };
+
+    const handleDeleteVacancy = async (id) => {
+        if (!window.confirm('Tem certeza que deseja excluir esta vaga?')) return;
+
+        try {
+            const { error } = await supabase.from('controle_vagas').delete().eq('id', id);
+            if (error) throw error;
+            toast.success('Vaga excluída com sucesso.');
+            fetchVagas();
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao excluir vaga.');
+        }
+    };
+
+    const handleNewVacancySaved = (savedData) => {
+        fetchVagas();
+        setEditingVacancy(null); // Limpa estado de edição
+    };
+
+    const handleCloseModal = () => {
+        setShowNewVacancyModal(false);
+        setEditingVacancy(null);
+    };
+    const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [visibleColumns, setVisibleColumns] = useState({
         matvin: true,
         servidor: true,
@@ -37,13 +61,14 @@ export default function ControleVagas() {
     // Paginação
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const itemsPerPage = 8;
+    const itemsPerPage = 8; // Reduzi levemente para caber melhor na tela, se for o caso
 
     // Buscar dados do Supabase
     useEffect(() => {
         fetchVagas();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, searchTerm, activeFilters]);
+    }, [page, searchTerm]);
+    // Removendo 'visibleColumns' da dependência para não recarregar a API ao mudar colunas
 
     const fetchVagas = async () => {
         setLoading(true);
@@ -54,14 +79,6 @@ export default function ControleVagas() {
 
             if (searchTerm) {
                 query = query.or(`servidor.ilike.%${searchTerm}%,matvin.ilike.%${searchTerm}%,cargo_funcao.ilike.%${searchTerm}%`);
-            }
-
-            // Filtros Avançados
-            if (activeFilters.status) {
-                query = query.eq('status', activeFilters.status);
-            }
-            if (activeFilters.secretaria) {
-                query = query.ilike('secretaria_pertencente', `%${activeFilters.secretaria}%`);
             }
 
             const from = (page - 1) * itemsPerPage;
@@ -83,34 +100,7 @@ export default function ControleVagas() {
         }
     };
 
-    const handleEditVacancy = (vaga) => {
-        setEditingVacancy(vaga);
-        setShowNewVacancyModal(true);
-    };
 
-    const handleDeleteVacancy = async (id) => {
-        if (!window.confirm('Tem certeza que deseja excluir esta vaga?')) return;
-
-        try {
-            const { error } = await supabase.from('controle_vagas').delete().eq('id', id);
-            if (error) throw error;
-            toast.success('Vaga excluída com sucesso.');
-            fetchVagas(); // Recarrega a lista
-        } catch (error) {
-            console.error(error);
-            toast.error('Erro ao excluir vaga.');
-        }
-    };
-
-    const handleNewVacancySaved = () => {
-        fetchVagas();
-        setEditingVacancy(null);
-    };
-
-    const handleCloseModal = () => {
-        setShowNewVacancyModal(false);
-        setEditingVacancy(null);
-    };
 
     const toggleColumn = (colKey) => {
         setVisibleColumns(prev => ({
@@ -208,16 +198,10 @@ export default function ControleVagas() {
                     />
                 </div>
 
-                <div className="flex space-x-2 w-full md:w-auto items-center justify-end">
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={`flex items-center space-x-2 px-3 py-2 border rounded-lg hover:bg-slate-100 whitespace-nowrap transition-colors ${showFilters || (activeFilters.status || activeFilters.secretaria) ? 'bg-blue-50 border-blue-200 text-blue-700 ring-2 ring-blue-100' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
-                    >
+                <div className="flex space-x-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 items-center">
+                    <button className="flex items-center space-x-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap">
                         <Filter size={16} />
                         <span>Filtros</span>
-                        {(activeFilters.status || activeFilters.secretaria) && (
-                            <span className="flex h-2 w-2 rounded-full bg-blue-500"></span>
-                        )}
                     </button>
 
                     <div className="relative">
@@ -254,54 +238,6 @@ export default function ControleVagas() {
                 </div>
             </div>
 
-            {/* Painel de Filtros Expandível */}
-            {showFilters && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 animate-slideDown shadow-inner mb-4">
-                    <div className="flex flex-col md:flex-row gap-4 items-end">
-                        <div className="w-full md:w-1/4">
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Status da Vaga</label>
-                            <select
-                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition-all"
-                                value={activeFilters.status}
-                                onChange={(e) => setActiveFilters(prev => ({ ...prev, status: e.target.value }))}
-                            >
-                                <option value="">Todos os status</option>
-                                <option value="ATIVO">Ativo</option>
-                                <option value="INATIVO">Inativo</option>
-                                <option value="CEDIDO">Cedido</option>
-                                <option value="FERIAS">Férias</option>
-                            </select>
-                        </div>
-
-                        <div className="w-full md:w-1/3">
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Secretaria</label>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Secretaria de Educação..."
-                                    className="w-full pl-9 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition-all"
-                                    value={activeFilters.secretaria}
-                                    onChange={(e) => setActiveFilters(prev => ({ ...prev, secretaria: e.target.value }))}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex-1"></div>
-
-                        <button
-                            onClick={() => {
-                                setActiveFilters({ status: '', secretaria: '' });
-                                setPage(1);
-                            }}
-                            className="text-sm text-slate-500 hover:text-red-600 font-medium px-4 py-2 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                            Limpar Filtros
-                        </button>
-                    </div>
-                </div>
-            )}
-
             {/* Tabela com Scroll */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col relative min-h-[500px]">
                 <div className="overflow-x-auto flex-1 custom-scrollbar">
@@ -310,7 +246,7 @@ export default function ControleVagas() {
                             <tr>
                                 {visibleColumns.matvin && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">MatVin</th>}
                                 {visibleColumns.servidor && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50 min-w-[200px]">Servidor</th>}
-                                {visibleColumns.cargo && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50 min-w-[250px]">Cargo/Função</th>}
+                                {visibleColumns.cargo && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50 min-w-[150px]">Cargo/Função</th>}
                                 {visibleColumns.atividade && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">Atividade</th>}
                                 {visibleColumns.vacancia && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">Vacância</th>}
                                 {visibleColumns.status && <th className="px-6 py-4 font-bold whitespace-nowrap bg-slate-50">Status</th>}
@@ -345,16 +281,13 @@ export default function ControleVagas() {
                                     <tr key={vaga.id} className="hover:bg-slate-50 transition-colors group">
                                         {visibleColumns.matvin && <td className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{vaga.matvin}</td>}
                                         {visibleColumns.servidor && <td className="px-6 py-4 font-bold text-slate-800 uppercase text-xs">{vaga.servidor}</td>}
-
                                         {visibleColumns.cargo && (
                                             <td className="px-6 py-4">
-                                                {/* MELHORIA VISUAL: Mais largo e sem corte de texto */}
-                                                <div className="text-xs font-bold text-slate-700 bg-blue-50/50 p-2 rounded border border-blue-100 min-w-[200px]" title={vaga.cargo_funcao}>
+                                                <div className="text-xs font-medium text-slate-600 line-clamp-2 max-w-[200px] bg-slate-100 p-1.5 rounded" title={vaga.cargo_funcao}>
                                                     {vaga.cargo_funcao}
                                                 </div>
                                             </td>
                                         )}
-
                                         {visibleColumns.atividade && <td className="px-6 py-4 text-slate-600 text-xs">{vaga.atividade}</td>}
                                         {visibleColumns.vacancia && <td className="px-6 py-4 whitespace-nowrap text-xs">{vaga.vacancia}</td>}
                                         {visibleColumns.status && (

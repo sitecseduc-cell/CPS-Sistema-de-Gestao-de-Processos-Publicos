@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Type, FileText, AlertCircle, Save } from 'lucide-react';
 
+// Adicionamos a prop 'processoParaEditar'
 export default function NewProcessModal({ isOpen, onClose, onSave, processoParaEditar = null }) {
   const [formData, setFormData] = useState({
     nome: '',
@@ -10,6 +12,7 @@ export default function NewProcessModal({ isOpen, onClose, onSave, processoParaE
   });
   const [error, setError] = useState('');
 
+  // Efeito para preencher o formulário quando abrirmos em modo de edição
   useEffect(() => {
     if (isOpen) {
       if (processoParaEditar) {
@@ -20,6 +23,7 @@ export default function NewProcessModal({ isOpen, onClose, onSave, processoParaE
           fim: processoParaEditar.fim || ''
         });
       } else {
+        // Limpa se for criar um novo
         setFormData({ nome: '', descricao: '', inicio: '', fim: '' });
       }
       setError('');
@@ -34,28 +38,27 @@ export default function NewProcessModal({ isOpen, onClose, onSave, processoParaE
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.nome) {
-      setError('O nome do processo é obrigatório.');
+    if (!formData.nome || !formData.inicio || !formData.fim) {
+      setError('Todos os campos obrigatórios devem ser preenchidos.');
       return;
     }
 
-    if (formData.inicio && formData.fim) {
-      const dataInicio = new Date(formData.inicio);
-      const dataFim = new Date(formData.fim);
-      if (dataFim < dataInicio) {
-        setError('Erro: A data final não pode ser anterior à data de início.');
-        return;
-      }
+    const dataInicio = new Date(formData.inicio);
+    const dataFim = new Date(formData.fim);
+
+    if (dataFim < dataInicio) {
+      setError('Erro: A data final não pode ser anterior à data de início.');
+      return;
     }
 
+    // Retorna os dados para a página pai
     onSave(formData);
+    // Não limpamos aqui, deixamos o useEffect lidar com isso ao fechar/abrir
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+    <div className={`fixed inset - 0 z - 50 flex items - center justify - center bg - slate - 900 / 50 backdrop - blur - sm transition - opacity ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'} `}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg m-4 overflow-hidden border border-slate-100 transform transition-all scale-100">
 
         <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
@@ -150,5 +153,6 @@ export default function NewProcessModal({ isOpen, onClose, onSave, processoParaE
         </div>
       </div>
     </div>
+
   );
 }
