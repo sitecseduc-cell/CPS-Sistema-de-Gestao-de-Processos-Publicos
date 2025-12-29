@@ -20,9 +20,20 @@ export const fetchKanbanCards = async () => {
 
 /** Create a new candidate */
 export const createCandidato = async (candidato) => {
+  // Mapeie apenas os campos que existem na sua tabela SQL
+  const dadosFormatados = {
+    nome: candidato.nome,
+    cpf: candidato.cpf,
+    email: candidato.email,
+    telefone: candidato.telefone,
+    // Se no banco a coluna se chama 'cargo_pretendido' (como no script de migração):
+    cargo_pretendido: candidato.vaga, 
+    status: 'Inscrito'
+  };
+
   const { data, error } = await supabase
     .from('candidatos')
-    .insert([candidato])
+    .insert([dadosFormatados]) // Envia apenas o objeto tratado
     .select();
 
   if (error) throw error;
