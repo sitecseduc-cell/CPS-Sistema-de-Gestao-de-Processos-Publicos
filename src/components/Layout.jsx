@@ -87,7 +87,7 @@ export default function Layout() {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+        <nav id="sidebar-nav" className="flex-1 p-4 overflow-y-auto custom-scrollbar">
           <SidebarGroup title="Principal">
             <SidebarItem icon={LayoutDashboard} label="Visão Geral" to="/" />
             <SidebarItem icon={BookOpen} label="Planejamento & Editais" to="/planejamento" />
@@ -186,7 +186,9 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
-      <AiChatbot />
+      <div id="chatbot-trigger">
+        <AiChatbot />
+      </div>
     </div>
   );
 }

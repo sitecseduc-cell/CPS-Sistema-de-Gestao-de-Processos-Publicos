@@ -16,6 +16,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@supabase/supabase-js": "^2.87.1",
     "date-fns": "^4.1.0",
+    "driver.js": "^1.4.0",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",

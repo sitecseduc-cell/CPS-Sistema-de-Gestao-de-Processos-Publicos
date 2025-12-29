@@ -7,6 +7,7 @@ import StatCard from '../components/StatCard';
 import { CardSkeleton, Skeleton } from '../components/ui/Loading';
 import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
+import OnboardingTour from '../components/OnboardingTour';
 
 const FunnelChart = ({ loading, data }) => {
   // ... (keep FunnelChart logic same as before, simplified below for brevity if needed but I will keep it full)
@@ -117,7 +118,7 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div id="kpi-cards" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {loading ? (
           <>
             <CardSkeleton /> <CardSkeleton /> <CardSkeleton /> <CardSkeleton />
@@ -139,7 +140,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions / Shortcuts */}
-        <div className="lg:col-span-1 space-y-6">
+        <div id="quick-actions" className="lg:col-span-1 space-y-6">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-full">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Acesso Rápido</h3>
 
@@ -171,6 +172,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      <OnboardingTour />
     </div>
   );
 }
