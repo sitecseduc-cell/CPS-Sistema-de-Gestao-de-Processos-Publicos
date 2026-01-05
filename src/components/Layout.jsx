@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import logoSistema from '../assets/brassao.svg';
 import AiChatbot from './AiChatbot';
+import InternalChat from './InternalChat';
 
 import {
   LayoutDashboard, Users, Layers, Bell, LogOut, Search,
@@ -187,6 +188,7 @@ export default function Layout() {
         </div>
       </main>
       <div id="chatbot-trigger">
+        <InternalChat />
         <AiChatbot />
       </div>
     </div>

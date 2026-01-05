@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, User, FileText, Calendar, MapPin, Briefcase, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
+import CandidateDetailsModal from '../components/CandidateDetailsModal';
 
 export default function PesquisaCandidatos() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -9,6 +10,8 @@ export default function PesquisaCandidatos() {
     const [candidatos, setCandidatos] = useState([]); // Agora é uma lista
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+    const [selectedCandidate, setSelectedCandidate] = useState(null);
+    const [detailsOpen, setDetailsOpen] = useState(false);
 
     // Lista de regionais/localidades
     const dres = ['Todas', 'Belém', 'Ananindeua', 'Castanhal', 'Marabá', 'Santarém', 'Altamira', 'Tucuruí', 'Breves'];
@@ -138,7 +141,13 @@ export default function PesquisaCandidatos() {
 
                             {/* Ações / Detalhes */}
                             <div className="flex-shrink-0">
-                                <button className="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors">
+                                <button
+                                    onClick={() => {
+                                        setSelectedCandidate(candidato);
+                                        setDetailsOpen(true);
+                                    }}
+                                    className="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors"
+                                >
                                     Detalhes <ChevronRight size={18} />
                                 </button>
                             </div>
@@ -153,6 +162,12 @@ export default function PesquisaCandidatos() {
                     <p className="text-slate-500">Nenhum registro localizado para sua busca.</p>
                 </div>
             )}
+
+            <CandidateDetailsModal
+                isOpen={detailsOpen}
+                onClose={() => setDetailsOpen(false)}
+                candidate={selectedCandidate}
+            />
         </div>
     );
 }
