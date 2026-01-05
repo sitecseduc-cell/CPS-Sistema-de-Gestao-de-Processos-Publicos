@@ -11,6 +11,14 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for hash manually on mount in case event fired before listener
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      if (window.location.pathname !== '/update-password') {
+        navigate('/update-password');
+      }
+    }
+
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -30,11 +38,12 @@ export const AuthProvider = ({ children }) => {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      console.log("Auth Event:", event); // Debug log
+      console.log("Auth Event:", event);
 
       if (event === 'PASSWORD_RECOVERY') {
-        // Usa navigate para transição suave sem perder estado
-        navigate('/update-password');
+        if (window.location.pathname !== '/update-password') {
+          navigate('/update-password');
+        }
       }
     });
 
@@ -66,10 +75,9 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  // CORREÇÃO AQUI: Redireciona para a raiz ao invés de rota inexistente
   const resetPassword = async (email) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
+      redirectTo: `${window.location.origin}/update-password`,
     });
     if (error) throw error;
     return data;
