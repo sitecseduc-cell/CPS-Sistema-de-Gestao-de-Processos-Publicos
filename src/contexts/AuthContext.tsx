@@ -22,6 +22,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<any>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<any>;
+  refreshProfile: () => Promise<void>;
   loading: boolean;
 }
 
@@ -53,12 +54,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const abortController = new AbortController();
 
     try {
-      // Create a timeout promise that rejects after 15 seconds
+      // Create a timeout promise that rejects after 60 seconds (extended for slow connections)
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => {
           abortController.abort();
           reject(new Error('Profile fetch timed out'));
-        }, 15000)
+        }, 60000)
       );
 
       // The actual supabase query
@@ -110,8 +111,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Retry logic for timeouts or network errors
-      if (retryCount < 2) { // Increased retries slightly
-        const backoff = (retryCount + 1) * 1000;
+      if (retryCount < 3) { // Try 3 times
+        const backoff = (retryCount + 1) * 2000; // 2s, 4s, 6s...
         console.log(`[Auth] ⚠️ Retrying profile fetch in ${backoff}ms...`);
         await new Promise(resolve => setTimeout(resolve, backoff));
         return fetchProfile(userId, retryCount + 1);
@@ -137,74 +138,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     let safetyTimeout: any;
-    let timeoutFired = false;
-
-    const checkSession = async () => {
-      try {
-        // Safety timeout to prevent infinite loading (10 seconds for slower connections)
-        safetyTimeout = setTimeout(() => {
-          timeoutFired = true;
-          console.warn("⚠️ Auth check timed out after 10s - allowing app to load without profile");
-          console.warn("This may indicate: slow connection, missing profiles table, or RLS policy issues");
-          setLoading(false);
-        }, 10000);
-
-        const { data, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          console.error("❌ Session error:", sessionError);
-          clearTimeout(safetyTimeout);
-          setLoading(false);
-          return;
-        }
-
-        if (data?.session?.user) {
-          console.log("✅ Session found for user:", data.session.user.id);
-          setUser(data.session.user);
-
-          // Fetch profile and clear timeout immediately after
-          await fetchProfile(data.session.user.id);
-
-          // Clear timeout as soon as profile fetch completes (success or failure)
-          if (!timeoutFired) {
-            clearTimeout(safetyTimeout);
-            setLoading(false);
-          }
-        } else {
-          console.log("ℹ️ No active session found");
-          clearTimeout(safetyTimeout);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("❌ Error during session check:", error);
-        if (!timeoutFired) {
-          clearTimeout(safetyTimeout);
-          setLoading(false);
-        }
-      }
-    };
-
-    checkSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[Auth] 🔄 Auth Event: ${event}`);
       setUser(session?.user ?? null);
 
-      console.log("Auth Event:", event);
-
       if (session?.user) {
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          await fetchProfile(session.user.id);
-        }
-        if (event === 'PASSWORD_RECOVERY') {
-          if (window.location.pathname !== '/update-password') {
-            navigate('/update-password');
-          }
-        }
+        // Se houver usuário, buscamos o perfil
+        // O safetyTimeout aqui deve ser maior que o timeout da busca (agora 60s + retries)
+        safetyTimeout = setTimeout(() => {
+          console.warn("[Auth] ⚠️ Safety Timeout: Perfil demorou demais para carregar (120s). Liberando app.");
+          setLoading(false);
+        }, 120000); // 120 segundos (2 minutos)
+
+        await fetchProfile(session.user.id);
+
+        if (safetyTimeout) clearTimeout(safetyTimeout);
+        setLoading(false);
       } else {
+        // Se não tem sessão (ex: SIGNED_OUT), limpa perfil e loading
         setProfile(null);
+        setLoading(false);
       }
 
-      setLoading(false);
+      if (event === 'PASSWORD_RECOVERY') {
+        if (window.location.pathname !== '/update-password') {
+          navigate('/update-password');
+        }
+      }
     });
 
     return () => {
@@ -232,8 +193,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       },
     });
-    // Note: The database trigger should create the profile. 
-    // If not using triggers, we'd manually insert here.
     if (error) throw error;
     return data;
   };
@@ -272,6 +231,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
   }
 
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -283,6 +248,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       signUp,
       signOut,
       resetPassword,
+      refreshProfile,
       loading
     }}>
       {children}

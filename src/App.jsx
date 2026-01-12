@@ -5,30 +5,31 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-import Layout from './components/Layout';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Processos from './pages/Processos';
-import Inscritos from './pages/Inscritos';
-import Kanban from './pages/Kanban';
-import EmConstrucao from './pages/EmConstrucao';
-import ControleVagas from './pages/ControleVagas';
-import Auditoria from './pages/Auditoria';
-import PesquisaCandidatos from './pages/PesquisaCandidatos';
-import QuantidadeInscritos from './pages/QuantidadeInscritos';
-import PreAvaliacao from './pages/PreAvaliacao';
-import Relatorios from './pages/Relatorios';
-import Seguranca from './pages/Seguranca';
+const Layout = React.lazy(() => import('./components/Layout'));
+const Login = React.lazy(() => import('./pages/Login'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Processos = React.lazy(() => import('./pages/Processos'));
+const Inscritos = React.lazy(() => import('./pages/Inscritos'));
+const Kanban = React.lazy(() => import('./pages/Kanban'));
+const EmConstrucao = React.lazy(() => import('./pages/EmConstrucao'));
+const ControleVagas = React.lazy(() => import('./pages/ControleVagas'));
+const Auditoria = React.lazy(() => import('./pages/Auditoria'));
+const PesquisaCandidatos = React.lazy(() => import('./pages/PesquisaCandidatos'));
+const QuantidadeInscritos = React.lazy(() => import('./pages/QuantidadeInscritos'));
+const PreAvaliacao = React.lazy(() => import('./pages/PreAvaliacao'));
+const Relatorios = React.lazy(() => import('./pages/Relatorios'));
+const Seguranca = React.lazy(() => import('./pages/Seguranca'));
 
 // --- IMPORTANTE: NOVA PÁGINA ---
-import VagasEspeciais from './pages/VagasEspeciais';
-import Planejamento from './pages/Planejamento';
-import Lotacao from './pages/Lotacao';
-import UpdatePassword from './pages/UpdatePassword';
-import AdminPerfis from './pages/AdminPerfis';
+const VagasEspeciais = React.lazy(() => import('./pages/VagasEspeciais'));
+const Planejamento = React.lazy(() => import('./pages/Planejamento'));
+const Lotacao = React.lazy(() => import('./pages/Lotacao'));
+const UpdatePassword = React.lazy(() => import('./pages/UpdatePassword'));
+const AdminPerfis = React.lazy(() => import('./pages/AdminPerfis'));
 
 import TryBoundary from './components/TryBoundary';
 import NetworkStatus from './components/NetworkStatus';
+
 
 export default function App() {
   return (
@@ -36,46 +37,52 @@ export default function App() {
       <NetworkStatus />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <React.Suspense fallback={
+            <div className="flex items-center justify-center h-screen w-screen bg-slate-50 dark:bg-slate-900">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          }>
+            <Routes>
 
-            <Route path="/login" element={<Login />} />
-            <Route path="/update-password" element={<UpdatePassword />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/update-password" element={<UpdatePassword />} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="planejamento" element={<Planejamento />} />
-                <Route path="processos" element={<Processos />} />
-                <Route path="lotacao" element={<Lotacao />} />
-                <Route path="vagas" element={<ControleVagas />} />
-                <Route path="inscritos" element={<Inscritos />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="planejamento" element={<Planejamento />} />
+                  <Route path="processos" element={<Processos />} />
+                  <Route path="lotacao" element={<Lotacao />} />
+                  <Route path="vagas" element={<ControleVagas />} />
+                  <Route path="inscritos" element={<Inscritos />} />
 
-                {/* --- NOVA ROTA DE VAGAS ESPECIAIS --- */}
-                <Route path="vagas-especiais" element={<VagasEspeciais />} />
+                  {/* --- NOVA ROTA DE VAGAS ESPECIAIS --- */}
+                  <Route path="vagas-especiais" element={<VagasEspeciais />} />
 
-                <Route path="admin/perfis" element={<AdminPerfis />} />
-                <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                  {/* <Route path="admin/perfis" element={<AdminPerfis />} /> */}
+                  <Route path="admin/perfis" element={<AdminPerfis />} />
+                  <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                    {/* <Route path="admin/perfis" element={<AdminPerfis />} /> */}
+                  </Route>
+                  {/* ------------------------------------ */}
+
+                  <Route path="pesquisa" element={<PesquisaCandidatos />} />
+                  <Route path="qtd" element={<QuantidadeInscritos />} />
+                  <Route path="pre" element={<PreAvaliacao />} />
+
+                  <Route path="workflow" element={<Kanban />} />
+                  <Route path="auditoria" element={<Auditoria />} />
+                  <Route path="relatorios" element={<Relatorios />} />
+                  <Route path="seguranca" element={<Seguranca />} />
+
+                  <Route path="*" element={<EmConstrucao titulo="Página em Desenvolvimento" />} />
                 </Route>
-                {/* ------------------------------------ */}
-
-                <Route path="pesquisa" element={<PesquisaCandidatos />} />
-                <Route path="qtd" element={<QuantidadeInscritos />} />
-                <Route path="pre" element={<PreAvaliacao />} />
-
-                <Route path="workflow" element={<Kanban />} />
-                <Route path="auditoria" element={<Auditoria />} />
-                <Route path="relatorios" element={<Relatorios />} />
-                <Route path="seguranca" element={<Seguranca />} />
-
-                <Route path="*" element={<EmConstrucao titulo="Página em Desenvolvimento" />} />
               </Route>
-            </Route>
 
-            <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
 
-          </Routes>
-          <Toaster richColors position="top-right" />
+            </Routes>
+            <Toaster richColors position="top-right" />
+          </React.Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TryBoundary>

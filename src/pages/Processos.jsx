@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit, FileText, Calendar, Layers, Trash2, Sparkles, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import NewProcessModal from '../components/NewProcessModal';
@@ -12,9 +12,42 @@ import { GeminiService } from '../services/GeminiService';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export default function Processos() {
-  // ... inside Processos component
-  const [loading, setLoading] = useState(true); // Add loading state
-  // ...
+  const fileInputRef = useRef(null);
+  const [processos, setProcessos] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProcess, setEditingProcess] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+
+  // Initial Fetch
+  useEffect(() => {
+    fetchProcessos();
+  }, []);
+
+  const handleanalyzeClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setAnalyzing(true);
+    try {
+      toast.info("Iniciando análise do Edital com IA...");
+      // Placeholder for Gemini integration
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast.success("Análise concluída! (Simulação)");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao analisar arquivo.");
+    } finally {
+      setAnalyzing(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   // Update fetchProcessos
   const fetchProcessos = async () => {

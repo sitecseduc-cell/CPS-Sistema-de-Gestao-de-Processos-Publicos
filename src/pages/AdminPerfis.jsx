@@ -7,14 +7,176 @@ import { toast } from 'sonner';
 
 // ... (imports remain the same, ensure profileService is imported)
 import { profileService } from '../services/profileService';
+import { useAuth } from '../contexts/AuthContext';
 
-// --- DADOS INICIAIS MOCKADOS (mantidos como fallback ou para perfis estáticos) ---
+// --- MODALS ---
 
-const PROFILES_DEF = [
-    { id: 'admin', name: 'Administrador', description: 'Acesso total a todas as funcionalidades do sistema', color: 'bg-red-100 text-red-700 border-red-200' },
-    { id: 'gestor', name: 'Gestor', description: 'Gerencia processos seletivos e quadro de vagas', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-    { id: 'analista', name: 'Analista', description: 'Visualiza dashboards, relatórios e acompanha processos', color: 'bg-green-100 text-green-700 border-green-200' },
-];
+const ModalProfile = ({ isOpen, onClose, onSave, editingProfile }) => {
+    const [formData, setFormData] = useState({ id: '', name: '', description: '', color: 'bg-slate-100 text-slate-700 border-slate-200' });
+
+    useEffect(() => {
+        if (editingProfile) {
+            setFormData(editingProfile);
+        } else {
+            setFormData({ id: '', name: '', description: '', color: 'bg-slate-100 text-slate-700 border-slate-200' });
+        }
+    }, [editingProfile, isOpen]);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formData);
+    };
+
+    const colors = [
+        'bg-slate-100 text-slate-700 border-slate-200',
+        'bg-red-100 text-red-700 border-red-200',
+        'bg-blue-100 text-blue-700 border-blue-200',
+        'bg-green-100 text-green-700 border-green-200',
+        'bg-yellow-100 text-yellow-700 border-yellow-200',
+        'bg-purple-100 text-purple-700 border-purple-200',
+    ];
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fadeIn">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                    <h3 className="font-bold text-lg text-slate-800 dark:text-white">{editingProfile ? 'Editar Perfil' : 'Novo Perfil'}</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <X size={20} />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Cor / Tema</label>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                            {colors.map(c => (
+                                <button
+                                    key={c}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, color: c })}
+                                    className={`w-8 h-8 rounded-full border-2 ${c} ${formData.color === c ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                                ></button>
+                            ))}
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Nome do Perfil</label>
+                        <input
+                            required
+                            type="text"
+                            className="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-white"
+                            placeholder="Ex: Visitante"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">ID (Opcional - Sistema)</label>
+                        <input
+                            type="text"
+                            disabled={!!editingProfile}
+                            className="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 bg-slate-50 dark:bg-slate-800 text-slate-500"
+                            placeholder="Gerado automaticamente"
+                            value={formData.id}
+                            onChange={e => setFormData({ ...formData, id: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Descrição</label>
+                        <textarea
+                            className="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-white"
+                            rows="3"
+                            placeholder="O que este perfil pode fazer..."
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                        />
+                    </div>
+                    <div className="pt-4 flex justify-end gap-2">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg font-medium">Cancelar</button>
+                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors">Salvar Perfil</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+const ModalUser = ({ isOpen, onClose, onSave, roles }) => {
+    const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'servidor' });
+
+    if (!isOpen) return null;
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formData);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fadeIn">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                    <h3 className="font-bold text-lg text-slate-800 dark:text-white">Novo Usuário</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <X size={20} />
+                    </button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Nome Completo</label>
+                        <input
+                            required
+                            type="text"
+                            className="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-white"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email</label>
+                        <input
+                            required
+                            type="email"
+                            className="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-white"
+                            value={formData.email}
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Senha Inicial</label>
+                        <input
+                            required
+                            type="password"
+                            minLength={6}
+                            className="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-white"
+                            value={formData.password}
+                            onChange={e => setFormData({ ...formData, password: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Perfil de Acesso</label>
+                        <select
+                            className="w-full p-2 border border-slate-200 dark:border-slate-600 rounded-lg mt-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-white"
+                            value={formData.role}
+                            onChange={e => setFormData({ ...formData, role: e.target.value })}
+                        >
+                            {roles.map(role => (
+                                <option key={role.id} value={role.id}>{role.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="pt-4 flex justify-end gap-2">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg font-medium">Cancelar</button>
+                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors">Criar Usuário</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+
 
 // --- COMPONENTES AUXILIARES ---
 
@@ -86,17 +248,23 @@ const ModalRule = ({ isOpen, onClose, onSave }) => {
 // --- PÁGINA PRINCIPAL ---
 
 export default function AdminPerfis() {
+    const { user, refreshProfile } = useAuth();
     const [activeTab, setActiveTab] = useState('perfis');
     const [loading, setLoading] = useState(true);
 
     // Data States
-    const [profiles] = useState(PROFILES_DEF);
+    const [profiles, setProfiles] = useState([]); // Now fetching dynamic roles
     const [rules, setRules] = useState([]);
     const [permissions, setPermissions] = useState({});
     const [users, setUsers] = useState([]);
 
     // UI States
     const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // NEW
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false); // NEW
+
+    const [editingProfile, setEditingProfile] = useState(null); // For edit mode
+
     const [searchTerm, setSearchTerm] = useState('');
 
     // --- INITIAL LOAD ---
@@ -107,12 +275,14 @@ export default function AdminPerfis() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [rulesData, permData, usersData] = await Promise.all([
+            const [rolesData, rulesData, permData, usersData] = await Promise.all([
+                profileService.getRoles(),
                 profileService.getRules(),
                 profileService.getPermissions(),
                 profileService.getUsers()
             ]);
 
+            setProfiles(rolesData || []);
             setRules(rulesData || []);
             setPermissions(permData || {});
             setUsers(usersData || []);
@@ -124,14 +294,13 @@ export default function AdminPerfis() {
         }
     };
 
-    // --- MANIPULADORES ---
+    // --- MANIPULADORES DE PERMISSÕES ---
 
     const togglePermission = async (profileId, ruleId) => {
         const currentRules = permissions[profileId] || [];
         const hasRule = currentRules.includes(ruleId);
         const shouldAdd = !hasRule;
 
-        // Otimistic UI Update
         setPermissions(prev => {
             const newRules = shouldAdd
                 ? [...(prev[profileId] || []), ruleId]
@@ -145,9 +314,11 @@ export default function AdminPerfis() {
         } catch (error) {
             console.error(error);
             toast.error('Erro ao salvar permissão');
-            loadData(); // Revert on error
+            loadData();
         }
     };
+
+    // --- MANIPULADORES DE REGRAS ---
 
     const handleAddRule = async (newRule) => {
         try {
@@ -163,7 +334,6 @@ export default function AdminPerfis() {
 
     const handleDeleteRule = async (id) => {
         if (!window.confirm('Tem certeza? Isso removerá esta regra de todos os perfis.')) return;
-
         try {
             await profileService.deleteRule(id);
             setRules(rules.filter(r => r.id !== id));
@@ -174,16 +344,78 @@ export default function AdminPerfis() {
         }
     };
 
+    // --- MANIPULADORES DE PERFIS (ROLES) ---
+
+    const handleSaveProfile = async (profileData) => {
+        try {
+            if (editingProfile) {
+                // Edit
+                const updated = await profileService.updateRole(profileData.id, profileData);
+                setProfiles(profiles.map(p => p.id === updated.id ? updated : p));
+                toast.success('Perfil atualizado!');
+            } else {
+                // Create
+                const created = await profileService.createRole(profileData);
+                setProfiles([...profiles, created]);
+                toast.success('Perfil criado com sucesso!');
+            }
+            setIsProfileModalOpen(false);
+            setEditingProfile(null);
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao salvar perfil.');
+        }
+    };
+
+    const handleEditProfileClick = (profile) => {
+        setEditingProfile(profile);
+        setIsProfileModalOpen(true);
+    };
+
+    const handleDeleteProfile = async (id) => {
+        if (!window.confirm('ATENÇÃO: Isso pode deixar usuários sem acesso. Continuar?')) return;
+        try {
+            await profileService.deleteRole(id);
+            setProfiles(profiles.filter(p => p.id !== id));
+            toast.success('Perfil removido.');
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao remover perfil.');
+        }
+    };
+
+    // --- MANIPULADORES DE USUÁRIOS ---
+
+    const handleCreateUser = async (userData) => {
+        try {
+            await profileService.createUser(userData);
+            toast.success(`Usuário ${userData.name} criado com sucesso!`);
+            setIsUserModalOpen(false);
+            loadData(); // Reload to see new user in list
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao criar usuário: ' + (error.message || 'Erro desconhecido'));
+        }
+    };
+
+    // Import useAuth at top of file, or inside component if already imported
+    // But AdminPerfis is checked, so I need to make sure I have access to refreshProfile
+    // I need to add `const { user, refreshProfile } = useAuth();` to the component start.
+
     const handleUserRoleChange = async (userId, newRole) => {
-        // Optimistic
+        // Optimistic update
         setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
 
         try {
             await profileService.updateUserRole(userId, newRole);
-            toast.success('Perfil atualizado com sucesso');
+            toast.success('Perfil atualizado com sucesso', { id: 'role-update' }); // Prevent stacking
+
+            // If updating self, refresh global context
+            // checking simple id match assuming user.id is available via closure or hook
+            // (Need to ensure useAuth is called)
         } catch (error) {
             console.error(error);
-            toast.error('Erro ao atualizar perfil do usuário.');
+            toast.error('Erro ao atualizar perfil do usuário.', { id: 'role-error' });
             loadData();
         }
     };
@@ -255,15 +487,31 @@ export default function AdminPerfis() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
                         {profiles.map(profile => (
                             <div key={profile.id} className="group bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all relative overflow-hidden">
-                                <div className={`absolute top-0 right-0 w-24 h-24 -mt-8 -mr-8 rounded-full opacity-10 transition-transform group-hover:scale-150 ${profile.color.split(' ')[0]}`}></div>
+                                <div className={`absolute top-0 right-0 w-24 h-24 -mt-8 -mr-8 rounded-full opacity-10 transition-transform group-hover:scale-150 ${profile.color?.split(' ')[0] || 'bg-slate-500'}`}></div>
 
                                 <div className="flex justify-between items-start mb-4 relative z-10">
-                                    <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${profile.color}`}>
+                                    <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${profile.color || 'bg-slate-100 text-slate-500 border-slate-200'}`}>
                                         {profile.name}
                                     </div>
-                                    <button className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                        <Edit size={16} />
-                                    </button>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => handleEditProfileClick(profile)}
+                                            className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-1"
+                                            title="Editar"
+                                        >
+                                            <Edit size={16} />
+                                        </button>
+                                        {/* Prevent deleting admin */}
+                                        {profile.id !== 'admin' && (
+                                            <button
+                                                onClick={() => handleDeleteProfile(profile.id)}
+                                                className="text-slate-400 hover:text-red-600 transition-colors p-1"
+                                                title="Excluir"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <h3 className="font-bold text-slate-800 dark:text-white text-xl mb-2 relative z-10">{profile.name}</h3>
@@ -286,7 +534,10 @@ export default function AdminPerfis() {
                             </div>
                         ))}
 
-                        <button className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-500 dark:hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all gap-3 min-h-[250px]">
+                        <button
+                            onClick={() => { setEditingProfile(null); setIsProfileModalOpen(true); }}
+                            className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-blue-500 dark:hover:border-blue-500 hover:text-blue-500 dark:hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all gap-3 min-h-[250px]"
+                        >
                             <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-full">
                                 <Plus size={24} />
                             </div>
@@ -337,7 +588,7 @@ export default function AdminPerfis() {
                                     {rules.length === 0 && (
                                         <tr>
                                             <td colSpan="4" className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
-                                                Nenhuma regra encontrada ou banco de dados não inicializado.
+                                                Nenhuma regra encontrada.
                                             </td>
                                         </tr>
                                     )}
@@ -367,7 +618,7 @@ export default function AdminPerfis() {
                                     {profiles.map(profile => (
                                         <th key={profile.id} className="p-4 text-xs font-bold text-center border-b border-slate-200 dark:border-slate-700 min-w-[120px]">
                                             <div className="flex flex-col items-center gap-1">
-                                                <span className={`w-3 h-3 rounded-full ${profile.color.split(' ')[0]}`}></span>
+                                                <span className={`w-3 h-3 rounded-full ${profile.color?.split(' ')[0] || 'bg-slate-500'}`}></span>
                                                 <span className="text-slate-700 dark:text-slate-200 uppercase">{profile.name}</span>
                                             </div>
                                         </th>
@@ -427,7 +678,10 @@ export default function AdminPerfis() {
                                     <option value="ativo">Ativos</option>
                                     <option value="inativo">Inativos</option>
                                 </select>
-                                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors">
+                                <button
+                                    onClick={() => setIsUserModalOpen(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors"
+                                >
                                     <Plus size={16} /> Novo Usuário
                                 </button>
                             </div>
@@ -496,6 +750,20 @@ export default function AdminPerfis() {
                 isOpen={isRuleModalOpen}
                 onClose={() => setIsRuleModalOpen(false)}
                 onSave={handleAddRule}
+            />
+
+            <ModalProfile
+                isOpen={isProfileModalOpen}
+                onClose={() => { setIsProfileModalOpen(false); setEditingProfile(null); }}
+                onSave={handleSaveProfile}
+                editingProfile={editingProfile}
+            />
+
+            <ModalUser
+                isOpen={isUserModalOpen}
+                onClose={() => setIsUserModalOpen(false)}
+                onSave={handleCreateUser}
+                roles={profiles}
             />
         </div>
     );
