@@ -11,7 +11,7 @@ import AuditDetailsModal from './AuditDetailsModal'; // Import the new modal
 import {
   LayoutDashboard, Users, Layers, Bell, LogOut, Search,
   FileText, Map, AlertTriangle, FileSpreadsheet, Shield, BookOpen, CheckCircle,
-  KanbanSquare, Briefcase, ShieldAlert, Star, X, Sun, Moon, MessageCircle
+  KanbanSquare, Briefcase, ShieldAlert, Star, X, Sun, Moon, MessageCircle, Lock
 } from 'lucide-react';
 
 // --- COMPONENTES AUXILIARES ---
@@ -49,7 +49,7 @@ const SidebarGroup = ({ title, children }) => (
 
 export default function Layout() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin, role } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -58,6 +58,19 @@ export default function Layout() {
   // States for Audit Modal within Notifications
   const [selectedLog, setSelectedLog] = useState(null);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+
+  // Helper to format role name nicely
+  const formatRoleName = (r) => {
+    if (!r) return 'Carregando...';
+    // Simple mapping for common roles, fallback to original
+    const map = {
+      'admin': 'Administrador',
+      'gestor': 'Gestor',
+      'servidor': 'Servidor',
+      'visitante': 'Visitante'
+    };
+    return map[r] || r;
+  };
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário';
 
@@ -77,45 +90,59 @@ export default function Layout() {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      // 2. Fetch recent Messages (Last 5) - Ideally unread, but for now recent global/direct
-      // We want messages where I am receiver OR global messages that are not from me
-      let { data: chatData } = await supabase
+    try {
+      let auditData = [];
+      let chatData = [];
+
+      // 1. Buscando Logs (Apenas se for Admin/Gestor)
+      if (role === 'admin' || role === 'gestor') {
+        const { data } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        if (data) auditData = data;
+      }
+
+      // 2. Buscando Mensagens (Diretas ou Globais)
+      const { data: messages } = await supabase
         .from('chat_messages')
         .select(`
             id, content, created_at, sender_id, receiver_id,
             profiles:sender_id (full_name)
         `)
+        .or(`receiver_id.eq.${user.id},receiver_id.is.null`)
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (!auditData) auditData = [];
-      if (!chatData) chatData = [];
+      if (messages) chatData = messages;
 
       // Process and normalize
-      const formattedAudit = (auditData || []).map(log => ({
+      const formattedAudit = auditData.map(log => ({
         id: `audit-${log.id}`,
         type: 'audit',
-        text: `${log.operation} em ${log.table_name}`,
+        text: `${log.operation} em ${log.table_name || 'Sistema'}`, // Fallback text
         subtext: 'Auditoria do Sistema',
         time: new Date(log.created_at),
         data: log,
-        unread: false // Audit logs are informative
+        unread: false
       }));
 
-      const formattedChat = (chatData || []).map(msg => ({
+      const formattedChat = chatData.map(msg => ({
         id: `chat-${msg.id}`,
         type: 'chat',
         text: msg.profiles?.full_name ? `Mensagem de ${msg.profiles.full_name}` : 'Nova mensagem',
         subtext: msg.content,
         time: new Date(msg.created_at),
         data: msg,
-        unread: true // Assume recent chats are "fresh" for list
+        unread: true
       }));
 
       // Combine and Sort
       const combined = [...formattedAudit, ...formattedChat].sort((a, b) => b.time - a.time).slice(0, 8);
+
       setNotifications(combined);
-      setUnreadCount(formattedChat.length); // Simple unread count based on chat msgs fetched
+      setUnreadCount(formattedChat.length);
 
     } catch (error) {
       console.error("Error fetching notifications", error);
@@ -195,6 +222,7 @@ export default function Layout() {
             <SidebarItem icon={ShieldAlert} label="Auditoria & Controle" to="/auditoria" />
             <SidebarItem icon={FileSpreadsheet} label="Relatórios Gerenciais" to="/relatorios" />
             <SidebarItem icon={Shield} label="Segurança do Sistema" to="/seguranca" />
+            <SidebarItem icon={Lock} label="Gestão de Acesso" to="/admin/perfis" />
           </SidebarGroup>
         </nav>
 
@@ -217,9 +245,21 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center space-x-6">
-            <div className="flex items-center text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/50 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700">
-              <span className="mr-2 hidden sm:inline">Bem-vindo,</span>
-              <strong className="text-slate-800 dark:text-white uppercase">{userName}</strong>
+            <div className="flex items-center gap-3 pl-1 pr-4 py-1.5 bg-white dark:bg-slate-800/50 rounded-full border border-slate-200 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-all group cursor-default">
+              <div className="h-9 w-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ring-2 ring-white dark:ring-slate-800">
+                {userName.substring(0, 2).toUpperCase()}
+              </div>
+              <div className="flex flex-col items-start leading-tight">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 max-w-[120px] truncate" title={userName}>
+                  {userName}
+                </span>
+                <span className={`text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${role === 'admin'
+                  ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300'
+                  : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                  }`}>
+                  {formatRoleName(role)}
+                </span>
+              </div>
             </div>
 
             {/* TEMA (DARK MODE) */}

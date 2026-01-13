@@ -1,51 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { supabase } from '../lib/supabaseClient';
 import {
-  Users, GitCommit, AlertTriangle, CheckCircle,
-  Map, BarChart3, Plus, ArrowRight, BookOpen
+  Users,
+  GitCommit,
+  CheckCircle,
+  AlertTriangle,
+  Plus,
+  ArrowRight,
+  BookOpen,
+  Map
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
-import { CardSkeleton, Skeleton } from '../components/ui/Loading';
-import { supabase } from '../lib/supabaseClient';
-import { Link } from 'react-router-dom';
+import FunnelChart from '../components/FunnelChart';
+import CardSkeleton from '../components/CardSkeleton';
 import OnboardingTour from '../components/OnboardingTour';
-
-const FunnelChart = ({ loading, data }) => {
-  // ... (keep FunnelChart logic same as before, simplified below for brevity if needed but I will keep it full)
-  // Valores padrão apenas para não quebrar se vier vazio
-  const funnelSteps = data || [
-    { label: 'Inscritos', count: 0, color: 'bg-blue-600' },
-    { label: 'Em Análise', count: 0, color: 'bg-blue-500' },
-    { label: 'Classificados', count: 0, color: 'bg-indigo-500' },
-    { label: 'Convocados', count: 0, color: 'bg-emerald-500' }
-  ];
-
-  const maxVal = funnelSteps[0]?.count || 1;
-
-  return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-full transition-colors duration-300">
-      <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center"><BarChart3 size={18} className="mr-2 text-slate-500 dark:text-slate-400" /> Funil de Seleção Hoje</h3>
-      <div className="space-y-4">
-        {loading
-          ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-8 w-full rounded-full" />)
-          : funnelSteps.map((step, idx) => {
-            const percent = Math.round((step.count / maxVal) * 100) || 0;
-            return (
-              <div key={idx} className="relative group cursor-default">
-                <div className="flex justify-between text-xs mb-1.5 font-semibold text-slate-600 dark:text-slate-300">
-                  <span>{step.label}</span>
-                  <span>{step.count.toLocaleString()} ({percent}%)</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                  <div className={`h-full ${step.color} rounded-full transition-all duration-1000 group-hover:opacity-80`} style={{ width: `${percent}%` }}></div>
-                </div>
-              </div>
-            )
-          })
-        }
-      </div>
-    </div>
-  );
-};
+import DebugStatus from '../components/DebugStatus';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -58,6 +29,8 @@ export default function Dashboard() {
   const [funnelData, setFunnelData] = useState([]);
 
   useEffect(() => {
+
+
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
@@ -85,12 +58,26 @@ export default function Dashboard() {
           setStats({ candidatos: c || 0, processos: p || 0, vagasPreenchidas: 0, atrasos: 0 });
         }
 
-        // Funnel Mockado melhorado com dados reais básicos se tiver
+        // Fetch Status Counts for Funnel (Parallel)
+        const [
+          { count: countAnalise },
+          { count: countClassificados },
+          { count: countConvocados }
+        ] = await Promise.all([
+          supabase.from('candidatos').select('*', { count: 'exact', head: true }).eq('status', 'Em Análise'),
+          supabase.from('candidatos').select('*', { count: 'exact', head: true }).eq('status', 'Classificado'),
+          supabase.from('candidatos').select('*', { count: 'exact', head: true }).eq('status', 'Convocado')
+        ]);
+
+        const totalAnalise = countAnalise || 0;
+        const totalClassificados = countClassificados || 0;
+        const totalConvocados = countConvocados || 0;
+
         setFunnelData([
           { label: 'Inscritos Totais', count: finalCandidatos, color: 'bg-blue-600' },
-          { label: 'Em Análise', count: Math.floor(finalCandidatos * 0.6), color: 'bg-blue-500' }, // Estimativa se não tiver dado real
-          { label: 'Classificados', count: Math.floor(finalCandidatos * 0.3), color: 'bg-purple-500' },
-          { label: 'Convocados', count: Math.floor(finalCandidatos * 0.1), color: 'bg-emerald-500' }
+          { label: 'Em Análise', count: totalAnalise, color: 'bg-blue-500' },
+          { label: 'Classificados', count: totalClassificados, color: 'bg-purple-500' },
+          { label: 'Convocados', count: totalConvocados, color: 'bg-emerald-500' }
         ]);
 
       } catch (e) {
@@ -173,6 +160,7 @@ export default function Dashboard() {
         </div>
       </div>
       <OnboardingTour />
+      <DebugStatus />
     </div>
   );
 }

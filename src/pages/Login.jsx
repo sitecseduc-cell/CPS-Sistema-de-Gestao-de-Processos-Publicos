@@ -1,11 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logoSistema from '../assets/brassao.svg'; // <--- 1. Importação da Logo
-import { Lock, Mail, User, Loader2, AlertCircle, ArrowRight, ArrowLeft, KeyRound } from 'lucide-react';
+import logoSistema from '../assets/brassao.svg';
+import { Lock, Mail, User, Loader2, AlertCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+
+// --- VALIDATION AND FORMS ---
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+// Schemas Zod
+const loginSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+});
+
+const registerSchema = z.object({
+  name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não conferem",
+  path: ["confirmPassword"],
+});
+
+const forgotSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+});
 
 export default function Login() {
-  // Estados de controle de visualização
   // view: 'login' | 'register' | 'forgot'
   const [view, setView] = useState('login');
 
@@ -16,35 +40,47 @@ export default function Login() {
 
   // Feedback
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [globalError, setGlobalError] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
 
   const { signIn, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
 
-  // Limpa mensagens ao trocar de tela
+  // Determine active schema based on view
+  const currentSchema = view === 'login' ? loginSchema : (view === 'register' ? registerSchema : forgotSchema);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    clearErrors
+  } = useForm({
+    resolver: zodResolver(currentSchema),
+    mode: 'onSubmit' // Validar ao submeter
+  });
+
   const changeView = (newView) => {
     setView(newView);
-    setError(null);
+    setGlobalError(null);
     setSuccessMsg('');
+    reset(); // Limpa formulário
+    clearErrors();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setLoading(true);
-    setError(null);
+    setGlobalError(null);
     setSuccessMsg('');
 
     try {
       if (view === 'register') {
-        // --- CADASTRO ---
-        await signUp(email, password, name);
+        await signUp(data.email, data.password, data.name);
         setSuccessMsg('Conta criada! Verifique seu e-mail ou faça login.');
         setTimeout(() => changeView('login'), 3000); // Volta pro login após 3s
       }
       else if (view === 'forgot') {
-        // --- RECUPERAÇÃO DE SENHA ---
-        await resetPassword(email);
+        await resetPassword(data.email);
         setSuccessMsg('Link de recuperação enviado! Verifique sua caixa de entrada.');
         // Não mudamos a view automaticamente para dar tempo de ler a mensagem
       }
@@ -54,13 +90,16 @@ export default function Login() {
         navigate('/');
       }
     } catch (err) {
-      setError(err.message || 'Ocorreu um erro. Verifique seus dados.');
+      // Traduz erros comuns do Supabase
+      let msg = err.message;
+      if (msg.includes('Invalid login credentials')) msg = 'E-mail ou senha incorretos.';
+      if (msg.includes('Email not confirmed')) msg = 'Verifique seu e-mail antes de entrar.';
+      setGlobalError(msg || 'Ocorreu um erro. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Títulos e descrições dinâmicos
   const getHeaderInfo = () => {
     switch (view) {
       case 'register': return { title: 'Novo Usuário', subtitle: 'Crie sua conta de acesso' };
@@ -86,11 +125,14 @@ export default function Login() {
           />
           {/* -------------------------------------------------------------------- */}
 
+        {/* Header */}
+        <div className="bg-slate-900 p-8 text-center">
+          <img src={logoSistema} alt="Logo SAGEP" className="h-16 w-16 object-cover mx-auto mb-4 rounded-lg" />
           <h1 className="text-2xl font-bold text-white tracking-tight">SGPS <span className="text-blue-400">SAGEP</span></h1>
           <p className="text-slate-400 text-sm mt-2">{header.subtitle}</p>
         </div>
 
-        {/* Formulário */}
+        {/* Content */}
         <div className="p-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-slate-800">{header.title}</h2>
@@ -99,7 +141,7 @@ export default function Login() {
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-600 text-sm animate-pulse">
               <AlertCircle size={18} className="mr-2 flex-shrink-0" />
-              {error}
+              {globalError}
             </div>
           )}
 
@@ -122,14 +164,13 @@ export default function Login() {
                     required={view === 'register'}
                     className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     placeholder="Seu Nome"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
                   />
                 </div>
+                {errors.name && <p className="text-red-500 text-xs mt-1 ml-1">{errors.name.message}</p>}
               </div>
             )}
 
-            {/* Campo Email (Todos) */}
+            {/* Email (All) */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">E-mail Institucional</label>
               <div className="relative">
@@ -139,13 +180,12 @@ export default function Login() {
                   required
                   className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   placeholder="seu.email@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+              {errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email.message}</p>}
             </div>
 
-            {/* Campo Senha (Login e Cadastro apenas) */}
+            {/* Password (Login & Register) */}
             {view !== 'forgot' && (
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Senha</label>
@@ -156,21 +196,33 @@ export default function Login() {
                     required={view !== 'forgot'}
                     className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1 ml-1">{errors.password.message}</p>}
               </div>
             )}
 
-            {/* Link Esqueci a Senha (Apenas Login) */}
+            {/* Confirm Password (Register Only) */}
+            {view === 'register' && (
+              <div className="animate-fadeIn">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Confirmar Senha</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                  <input
+                    {...register('confirmPassword')}
+                    type="password"
+                    className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${errors.confirmPassword ? 'border-red-300 focus:ring-red-200' : 'border-slate-200 focus:ring-blue-500'}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1 ml-1">{errors.confirmPassword.message}</p>}
+              </div>
+            )}
+
+            {/* Forgot Password Link */}
             {view === 'login' && (
               <div className="flex justify-end text-sm">
-                <button
-                  type="button"
-                  onClick={() => changeView('forgot')}
-                  className="text-blue-600 hover:underline font-medium"
-                >
+                <button type="button" onClick={() => changeView('forgot')} className="text-blue-600 hover:underline font-medium">
                   Esqueceu a senha?
                 </button>
               </div>
@@ -189,41 +241,19 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Navegação entre modos (Rodapé do form) */}
+          {/* Footer Navigation */}
           <div className="mt-6 pt-6 border-t border-slate-100 text-center">
             {view === 'login' && (
               <>
                 <p className="text-sm text-slate-500 mb-3">Não tem acesso ainda?</p>
-                <button
-                  type="button"
-                  onClick={() => changeView('register')}
-                  className="text-blue-600 font-bold hover:text-blue-800 transition-colors flex items-center justify-center mx-auto gap-1"
-                >
+                <button onClick={() => changeView('register')} className="text-blue-600 font-bold hover:text-blue-800 flex items-center justify-center mx-auto gap-1">
                   Criar uma conta agora <ArrowRight size={16} />
                 </button>
               </>
             )}
-
-            {view === 'register' && (
-              <>
-                <p className="text-sm text-slate-500 mb-3">Já possui uma conta?</p>
-                <button
-                  type="button"
-                  onClick={() => changeView('login')}
-                  className="text-blue-600 font-bold hover:text-blue-800 transition-colors flex items-center justify-center mx-auto gap-1"
-                >
-                  <ArrowLeft size={16} /> Voltar para Login
-                </button>
-              </>
-            )}
-
-            {view === 'forgot' && (
-              <button
-                type="button"
-                onClick={() => changeView('login')}
-                className="text-slate-500 font-bold hover:text-slate-700 transition-colors flex items-center justify-center mx-auto gap-1"
-              >
-                <ArrowLeft size={16} /> Cancelar e Voltar
+            {view !== 'login' && (
+              <button onClick={() => changeView('login')} className="text-blue-600 font-bold hover:text-blue-800 flex items-center justify-center mx-auto gap-1">
+                <ArrowLeft size={16} /> Voltar para Login
               </button>
             )}
           </div>

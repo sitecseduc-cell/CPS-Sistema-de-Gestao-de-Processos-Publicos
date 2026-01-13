@@ -1,35 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Users, Globe, Hash, CornerDownLeft, ChevronLeft, User } from 'lucide-react';
+import { MessageCircle, X, Send, Users, Globe, Hash, CornerDownLeft, ChevronLeft, User, Search } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 
 export default function InternalChat() {
     const { user } = useAuth();
-    console.log('InternalChat rendering', user);
-
-    // States
     const [isOpen, setIsOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState('global'); // 'global' | 'users' | 'direct_chat'
-    const [selectedUser, setSelectedUser] = useState(null); // User we are chatting with
+    const [activeTab, setActiveTab] = useState('global');
+    const [selectedUser, setSelectedUser] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [usersList, setUsersList] = useState([]);
+    const [searchQuery, setSearchQuery] = useState(''); // New: Search state
     const messagesEndRef = useRef(null);
+    const chatContainerRef = useRef(null);
 
+    // ... (Keep existing listener useEffects) ...
     // Listen for external open requests
     useEffect(() => {
         const handleOpenChat = (event) => {
             setIsOpen(true);
             if (event.detail?.userId) {
-                // If a specific user is requested (e.g. from notification)
-                // We need to find the user object first implies we need to have fetched users or fetch him now.
-                // For simplicity, we might just switch tab or try to set selectedUser if we have users list.
-                // A robust way: fetch that single user profile and set it.
                 fetchUserProfileAndOpen(event.detail.userId);
             }
         };
-
         window.addEventListener('open-internal-chat', handleOpenChat);
         return () => window.removeEventListener('open-internal-chat', handleOpenChat);
     }, []);
@@ -42,37 +37,37 @@ export default function InternalChat() {
         }
     };
 
-    // Initial Load & Listeners
+    // Load Data
     useEffect(() => {
         if (!isOpen) return;
 
-        // Load Users when tab changes to users
         if (activeTab === 'users') {
-            fetchUsers([]);
+            fetchUsers();
         }
 
-        // Load Messages corresponding to the active view
         if (activeTab === 'global' || activeTab === 'direct_chat') {
             fetchMessages();
-            subscribeToMessages();
+            const channel = subscribeToMessages();
+            return () => { supabase.removeChannel(channel); };
         }
+    }, [isOpen, activeTab, selectedUser]);
 
-        return () => {
-            // Cleanup subscription
-            supabase.removeAllChannels();
-        };
-    }, [isOpen, activeTab, selectedUser]); // Re-run when view changes
-
-    // Scroll to bottom
+    // Auto-scroll
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        scrollToBottom();
     }, [messages, isOpen, activeTab]);
 
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // ... (Keep fetch functions, but improved) ...
     const fetchUsers = async () => {
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
-            .neq('id', user.id); // Exclude self
+            .neq('id', user.id)
+            .order('full_name'); // Order by name
 
         if (error) console.error("Error fetching users:", error);
         else setUsersList(data || []);
@@ -92,88 +87,58 @@ export default function InternalChat() {
             if (activeTab === 'global') {
                 query = query.is('receiver_id', null);
             } else if (activeTab === 'direct_chat' && selectedUser) {
-                console.log('Fetching DM between:', user.id, 'and', selectedUser.id);
-                // Using a clearer OR syntax for Supabase
                 query = query.or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${user.id})`);
             } else {
-                return; // No messages to fetch for list view
+                return;
             }
 
             const { data, error } = await query;
-
-            if (error) {
-                console.error("Erro ao carregar mensagens:", error);
-                if (error.code === '42P01') {
-                    toast.error("Tabela de chat não encontrada.");
-                } else {
-                    toast.error("Erro ao carregar chat: " + error.message);
-                }
-            } else {
-                setMessages(data || []);
-            }
+            if (error) throw error;
+            setMessages(data || []);
         } catch (err) {
-            console.error("Exception in fetchMessages:", err);
+            console.error(err);
         }
     };
 
     const subscribeToMessages = () => {
-        // We use a broad subscription and filter manually in client for simplicity in this demo,
-        // or we could set up specific filters. For low volume, filtering here is fine.
         const channel = supabase
             .channel('public:chat_messages')
             .on('postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'chat_messages' },
                 async (payload) => {
                     const newMsg = payload.new;
-
-                    // 1. Check if this message belongs to the current view
                     let isRelevant = false;
 
-                    if (activeTab === 'global' && !newMsg.receiver_id) {
-                        isRelevant = true;
-                    } else if (activeTab === 'direct_chat' && selectedUser) {
-                        const isFromMeToHim = newMsg.sender_id === user.id && newMsg.receiver_id === selectedUser.id;
-                        const isFromHimToMe = newMsg.sender_id === selectedUser.id && newMsg.receiver_id === user.id;
-                        if (isFromMeToHim || isFromHimToMe) isRelevant = true;
+                    if (activeTab === 'global' && !newMsg.receiver_id) isRelevant = true;
+                    else if (activeTab === 'direct_chat' && selectedUser) {
+                        const isDirect = (newMsg.sender_id === user.id && newMsg.receiver_id === selectedUser.id) ||
+                            (newMsg.sender_id === selectedUser.id && newMsg.receiver_id === user.id);
+                        if (isDirect) isRelevant = true;
                     }
 
                     if (isRelevant) {
-                        // Fetch profile info
-                        const { data } = await supabase
-                            .from('profiles')
-                            .select('full_name, avatar_url')
-                            .eq('id', newMsg.sender_id)
-                            .single();
-
+                        const { data } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', newMsg.sender_id).single();
                         setMessages(prev => [...prev, { ...newMsg, profiles: data }]);
                     }
                 }
             )
             .subscribe();
-
         return channel;
     };
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !user) return;
-
         const text = newMessage.trim();
         setNewMessage('');
-
         try {
-            const msgData = {
+            await supabase.from('chat_messages').insert({
                 content: text,
                 sender_id: user.id,
                 receiver_id: activeTab === 'direct_chat' ? selectedUser?.id : null
-            };
-
-            const { error } = await supabase.from('chat_messages').insert(msgData);
-
-            if (error) throw error;
+            });
         } catch (error) {
-            console.error(error);
-            toast.error("Erro: " + (error.message || "Falha ao enviar."));
+            toast.error("Erro ao enviar.");
             setNewMessage(text);
         }
     };
@@ -181,183 +146,213 @@ export default function InternalChat() {
     const handleUserSelect = (targetUser) => {
         setSelectedUser(targetUser);
         setActiveTab('direct_chat');
-        setMessages([]); // Clear previous view
+        setMessages([]);
     };
 
-    const handleBackToUsers = () => {
-        setSelectedUser(null);
-        setActiveTab('users');
+    // --- UTILS ---
+    const getDateLabel = (date) => {
+        const d = new Date(date);
+        const today = new Date();
+        if (d.toDateString() === today.toDateString()) return 'Hoje';
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        if (d.toDateString() === yesterday.toDateString()) return 'Ontem';
+        return d.toLocaleDateString();
     };
+
+    // Group messages by date
+    const groupedMessages = messages.reduce((acc, msg) => {
+        const dateLabel = getDateLabel(msg.created_at);
+        if (!acc[dateLabel]) acc[dateLabel] = [];
+        acc[dateLabel].push(msg);
+        return acc;
+    }, {});
+
+    // Filtered Users
+    const filteredUsers = usersList.filter(u =>
+        (u.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     if (!user) return null;
 
     return (
-        <div className="fixed bottom-24 right-6 z-[60] flex flex-col items-end pointer-events-none">
-
-            {/* Chat Window */}
+        <div className="fixed bottom-24 right-6 z-[60] flex flex-col items-end pointer-events-none font-sans">
             {isOpen && (
-                <div className="mb-4 bg-white dark:bg-slate-800 w-80 md:w-96 h-[500px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden pointer-events-auto animate-fadeIn flex flex-col">
+                <div className="mb-4 bg-white dark:bg-slate-800 w-80 md:w-96 h-[550px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden pointer-events-auto animate-fadeIn flex flex-col transform transition-all">
 
-                    {/* Header */}
+                    {/* HEADER */}
                     <div className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             {activeTab === 'direct_chat' ? (
-                                <button onClick={handleBackToUsers} className="mr-1 hover:bg-slate-700 p-1 rounded">
-                                    <ChevronLeft size={18} />
+                                <button onClick={() => { setActiveTab('users'); setSelectedUser(null); }} className="hover:bg-slate-800 p-1.5 rounded-full transition-colors">
+                                    <ChevronLeft size={20} />
                                 </button>
                             ) : (
                                 <div className="p-2 bg-slate-800 rounded-lg">
-                                    <MessageCircle size={18} className="text-blue-400" />
+                                    <MessageCircle size={20} className="text-blue-400" />
                                 </div>
                             )}
                             <div>
-                                <h3 className="font-bold text-sm">
+                                <h3 className="font-bold text-sm leading-tight">
                                     {activeTab === 'direct_chat' ? selectedUser?.full_name : 'Chat da Equipe'}
                                 </h3>
-                                <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
-                                </p>
+                                <div className="flex items-center gap-1.5 opacity-70">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span className="text-[10px] font-medium uppercase tracking-wider">Online</span>
+                                </div>
                             </div>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors">
-                            <X size={18} />
+                        <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white hover:bg-slate-800 p-1.5 rounded-full transition-colors">
+                            <X size={20} />
                         </button>
                     </div>
 
-                    {/* Tabs (Navigation) */}
+                    {/* TABS */}
                     {activeTab !== 'direct_chat' && (
-                        <div className="flex border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 shrink-0">
-                            <button
-                                onClick={() => setActiveTab('global')}
-                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${activeTab === 'global' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                            >
-                                <Globe size={14} /> Global
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('users')}
-                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${activeTab === 'users' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                            >
-                                <Users size={14} /> Direto
-                            </button>
+                        <div className="flex bg-slate-100 p-1 dark:bg-slate-900 shrink-0">
+                            {['global', 'users'].map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`flex-1 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 transition-all ${activeTab === tab
+                                            ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
+                                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    {tab === 'global' ? <Globe size={14} /> : <Users size={14} />}
+                                    {tab === 'global' ? 'Global' : 'Direto'}
+                                </button>
+                            ))}
                         </div>
                     )}
 
-                    {/* Content Area */}
-                    <div className="flex-1 overflow-y-auto p-4 bg-slate-50/50 dark:bg-slate-900/50 custom-scrollbar relative">
+                    {/* CONTENT */}
+                    <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 relative custom-scrollbar flex flex-col" ref={chatContainerRef}>
 
-                        {/* GLOBAL & DIRECT CHAT VIEW */}
+                        {/* MESSAGES VIEW */}
                         {(activeTab === 'global' || activeTab === 'direct_chat') && (
-                            <div className="space-y-4">
-                                {messages.length === 0 && (
-                                    <div className="text-center py-10 opacity-50">
-                                        <div className="bg-slate-200 dark:bg-slate-700 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                                            {activeTab === 'global' ? <Hash className="text-slate-500" /> : <User className="text-slate-500" />}
+                            <div className="p-4 space-y-6">
+                                {Object.keys(groupedMessages).length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-full opacity-40 mt-10">
+                                        <div className="bg-slate-200 dark:bg-slate-700 p-4 rounded-full mb-3">
+                                            {activeTab === 'global' ? <Hash size={24} /> : <User size={24} />}
                                         </div>
-                                        <p className="text-xs">
-                                            {activeTab === 'global' ? "Nenhuma mensagem global." : "Inicie a conversa!"}
-                                        </p>
+                                        <p className="text-xs text-center font-medium">Nenhuma mensagem ainda.<br />Comece a conversa!</p>
                                     </div>
-                                )}
-
-                                {messages.map((msg, idx) => {
-                                    const isMe = msg.sender_id === user.id;
-                                    const showName = (activeTab === 'global') && (idx === 0 || messages[idx - 1].sender_id !== msg.sender_id);
-
-                                    return (
-                                        <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                                            {showName && !isMe && (
-                                                <span className="text-[10px] text-slate-500 ml-1 mb-1 font-bold">
-                                                    {msg.profiles?.full_name || 'Usuário'}
-                                                </span>
-                                            )}
-                                            <div className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm shadow-sm relative group ${isMe
-                                                ? 'bg-slate-800 text-white rounded-br-none'
-                                                : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-600 rounded-bl-none'
-                                                }`}>
-                                                {msg.content}
-                                                <span className="text-[9px] opacity-50 block text-right mt-1 -mb-1">
-                                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                ) : (
+                                    Object.entries(groupedMessages).map(([date, msgs]) => (
+                                        <div key={date} className="space-y-4">
+                                            <div className="flex items-center justify-center">
+                                                <span className="text-[10px] font-bold text-slate-400 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                                    {date}
                                                 </span>
                                             </div>
+                                            {msgs.map((msg, idx) => {
+                                                const isMe = msg.sender_id === user.id;
+                                                // Check for sequence to group bubbles
+                                                const isSequence = idx > 0 && msgs[idx - 1].sender_id === msg.sender_id;
+
+                                                return (
+                                                    <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} ${isSequence ? '-mt-2' : ''}`}>
+                                                        {!isMe && !isSequence && (
+                                                            <div className="flex items-center gap-2 mb-1 ml-1">
+                                                                <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-[8px] text-white font-bold uppercase ring-2 ring-white dark:ring-slate-800">
+                                                                    {(msg.profiles?.full_name || '?').substring(0, 2)}
+                                                                </div>
+                                                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[150px]">
+                                                                    {msg.profiles?.full_name}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <div className={`px-4 py-2 max-w-[85%] text-sm rounded-2xl shadow-sm relative group transition-all hover:shadow-md ${isMe
+                                                                ? 'bg-blue-600 text-white rounded-br-sm'
+                                                                : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-600 rounded-bl-sm'
+                                                            }`}>
+                                                            {msg.content}
+                                                            <div className={`text-[9px] mt-1 text-right w-full flex justify-end items-center gap-1 ${isMe ? 'opacity-70 text-blue-100' : 'opacity-50'}`}>
+                                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                    );
-                                })}
+                                    ))
+                                )}
                                 <div ref={messagesEndRef} />
                             </div>
                         )}
 
                         {/* USERS LIST VIEW */}
                         {activeTab === 'users' && (
-                            <div className="space-y-2">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Selecione um usuário</h4>
-                                {usersList.length === 0 ? (
-                                    <div className="text-center py-8 text-slate-400">
-                                        <p className="text-xs">Nenhum outro usuário encontrado.</p>
+                            <div className="p-2 space-y-2">
+                                <div className="px-2 sticky top-0 bg-slate-50 dark:bg-slate-900 z-10 pb-2">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar colega..."
+                                            value={searchQuery}
+                                            onChange={e => setSearchQuery(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
                                     </div>
-                                ) : (
-                                    usersList.map((u) => (
-                                        <button
-                                            key={u.id}
-                                            onClick={() => handleUserSelect(u)}
-                                            className="w-full flex items-center gap-3 p-3 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 rounded-xl transition-all group text-left"
-                                        >
-                                            <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-500 group-hover:bg-blue-200 group-hover:text-blue-700 transition-colors">
-                                                {u.avatar_url ? (
-                                                    <img src={u.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-                                                ) : (
-                                                    <span className="font-bold text-sm">
-                                                        {(u.full_name || 'U').charAt(0).toUpperCase()}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-bold text-sm text-slate-700 dark:text-slate-200 truncate group-hover:text-blue-700">
-                                                    {u.full_name || 'Usuário Sem Nome'}
-                                                </p>
-                                                <p className="text-[10px] text-slate-400">Clique para conversar</p>
-                                            </div>
-                                        </button>
-                                    ))
-                                )}
+                                </div>
+                                {filteredUsers.map(u => (
+                                    <button
+                                        key={u.id}
+                                        onClick={() => handleUserSelect(u)}
+                                        className="w-full flex items-center gap-3 p-3 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700/50 border border-transparent hover:border-blue-100 rounded-xl transition-all group"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs group-hover:from-blue-500 group-hover:to-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                            {(u.full_name || 'U').substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <p className="font-bold text-sm text-slate-700 dark:text-slate-200 group-hover:text-blue-700 transition-colors">
+                                                {u.full_name || 'Usuário'}
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 truncate max-w-[150px]">{u.email}</p>
+                                        </div>
+                                    </button>
+                                ))}
                             </div>
                         )}
                     </div>
 
-                    {/* Input Area (Only for Global or Direct Chat) */}
+                    {/* FOOTER INPUT */}
                     {(activeTab === 'global' || activeTab === 'direct_chat') && (
-                        <form onSubmit={handleSendMessage} className="p-3 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shrink-0">
-                            <div className="relative flex items-center gap-2">
+                        <form onSubmit={handleSendMessage} className="p-3 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 shrink-0 shadow-lg z-20">
+                            <div className="flex gap-2 items-center">
                                 <input
                                     type="text"
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    placeholder={activeTab === 'global' ? "Mensagem para todos..." : `Mensagem para ${selectedUser?.full_name?.split(' ')[0]}...`}
-                                    className="flex-1 pl-4 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                                    placeholder="Digite sua mensagem..."
+                                    className="flex-1 px-4 py-2.5 rounded-full border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!newMessage.trim()}
-                                    className="p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
+                                    className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:scale-95 transition-all shadow-md group"
                                 >
-                                    <Send size={18} />
+                                    <Send size={16} className="group-hover:translate-x-0.5 transition-transform" />
                                 </button>
                             </div>
                         </form>
                     )}
-
                 </div>
             )}
 
-            {/* Float Button trigger */}
+            {/* FLOATING TRIGGER BUTTON */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`pointer-events-auto p-4 rounded-full shadow-lg shadow-slate-900/20 transition-all duration-300 flex items-center justify-center border-2 border-white dark:border-slate-800 ${isOpen
-                    ? 'bg-slate-700 text-white hover:bg-slate-800'
-                    : 'bg-slate-900 text-white hover:bg-slate-800 animate-pulse-slow'
+                className={`pointer-events-auto p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center border-4 border-white dark:border-slate-800 group hover:scale-110 active:scale-95 ${isOpen
+                    ? 'bg-red-500 text-white rotate-90'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
-                title="Chat da Equipe"
             >
-                {isOpen ? <CornerDownLeft size={24} /> : <MessageCircle size={24} />}
+                {isOpen ? <X size={24} /> : <MessageCircle size={24} className="group-hover:animate-bounce-slow" />}
             </button>
         </div>
     );
