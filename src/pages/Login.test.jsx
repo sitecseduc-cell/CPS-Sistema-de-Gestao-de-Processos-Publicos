@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
-import Login from '../Login';
+import Login from './Login';
 // We don't import AuthContext or useAuth normally if we mock the module, 
 // but we might need to import it if we want to spy on it, or just rely on the mock factory.
 

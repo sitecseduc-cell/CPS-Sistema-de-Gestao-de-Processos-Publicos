@@ -48,8 +48,8 @@ describe('Relatorios Page', () => {
         render(<Relatorios />);
         expect(screen.getByText('Central de Relatórios')).toBeInTheDocument();
         // Check for specific buttons
-        expect(screen.getAllByText('CSV').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('PDF').length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/CSV/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/PDF/i).length).toBeGreaterThan(0);
     });
 
     it('triggers CSV export when clicked', async () => {

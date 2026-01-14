@@ -60,9 +60,8 @@ export default function App() {
                   <Route path="vagas-especiais" element={<VagasEspeciais />} />
                   <Route path="notificacoes" element={<Notifications />} />
 
-                  <Route path="admin/perfis" element={<AdminPerfis />} />
                   <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                    {/* <Route path="admin/perfis" element={<AdminPerfis />} /> */}
+                    <Route path="admin/perfis" element={<AdminPerfis />} />
                   </Route>
                   {/* ------------------------------------ */}
 
