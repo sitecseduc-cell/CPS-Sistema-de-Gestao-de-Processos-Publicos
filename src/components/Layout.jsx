@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabaseClient';
+import bandeiraPara from '../assets/bandeira_para.png';
 
 import AiChatbot from './AiChatbot';
 import InternalChat from './InternalChat';
@@ -226,8 +227,8 @@ export default function Layout() {
         {/* Logo Area */}
         <div className="p-8 pb-4 flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/50 dark:bg-white/10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 shrink-0">
-              <Hexagon className="w-8 h-8 text-indigo-600 dark:text-indigo-400 fill-indigo-500/10" />
+            <div className="w-12 h-12 bg-white/50 dark:bg-white/10 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/10 shrink-0 overflow-hidden">
+              <img src={bandeiraPara} alt="Bandeira do Pará" className="w-full h-full object-cover opacity-90" />
             </div>
             <div className="flex flex-col justify-center">
               <span className="text-lg font-bold text-slate-800 dark:text-white leading-tight tracking-tight">
