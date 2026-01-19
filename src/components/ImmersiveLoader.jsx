@@ -38,73 +38,46 @@ export default function ImmersiveLoader() {
     }, []);
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/80 dark:bg-slate-950/80 backdrop-blur-md overflow-hidden font-sans transition-all duration-500">
 
-            {/* Background Aurora */}
-            <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse"></div>
-            <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-fuchsia-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+            {/* Subtle Gradient Backdrops */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse"></div>
 
-            {/* Main Loader Container */}
-            <div className="relative z-10 flex flex-col items-center">
+            {/* Main Content */}
+            <div className="relative z-10 flex flex-col items-center gap-8">
 
-                {/* Animated Logo (Professional Icon) */}
-                <div className="relative w-40 h-40 mb-12 flex items-center justify-center">
-                    {/* Pulsing Outer Glow */}
-                    <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+                {/* Modern Minimal Loader */}
+                <div className="relative flex items-center justify-center p-6">
+                    {/* Ring 1 */}
+                    <div className="absolute inset-0 border-4 border-slate-100 dark:border-slate-800 rounded-full"></div>
+                    {/* Ring 2 (Spinner) */}
+                    <div className="absolute inset-0 border-4 border-indigo-500/20 border-t-indigo-600 dark:border-indigo-400/20 dark:border-t-indigo-400 rounded-full animate-spin"></div>
 
-                    {/* Rotating Rings */}
-                    <div className="absolute inset-0 border border-slate-200 dark:border-slate-700/50 rounded-full animate-[spin_10s_linear_infinite]"></div>
-                    <div className="absolute inset-4 border border-slate-300 dark:border-slate-600/30 rounded-full animate-[spin_8s_linear_infinite_reverse]"></div>
-
-                    {/* Thin Progress Ring Effect */}
-                    <svg className="absolute inset-0 w-full h-full rotate-[-90deg] p-1">
-                        <circle
-                            cx="50%" cy="50%" r="48%"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1"
-                            strokeDasharray="100 200"
-                            className="text-indigo-500/30 animate-[spin_3s_linear_infinite]"
-                        />
-                    </svg>
-
-                    {/* The Professional Icon */}
-                    <div className="relative z-10 animate-float flex flex-col items-center justify-center">
-                        <Hexagon
-                            strokeWidth={1.5}
-                            className="w-16 h-16 text-indigo-600 dark:text-indigo-400 drop-shadow-lg fill-indigo-500/5"
-                        />
+                    {/* Icon */}
+                    <div className="relative z-10 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-xl shadow-indigo-500/10 border border-slate-100 dark:border-slate-800">
+                        <Hexagon className="w-8 h-8 text-indigo-600 dark:text-indigo-400 fill-indigo-100 dark:fill-indigo-900/30 animate-pulse" strokeWidth={2} />
                     </div>
                 </div>
 
-                {/* Text & Message */}
-                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 mb-4 tracking-tight animate-fadeIn">
-                    CPS - Sistema de Gestão
-                </h2>
+                {/* Typography */}
+                <div className="text-center space-y-3">
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
+                        Sistema de Gestão
+                    </h2>
 
-                <div className="h-6 overflow-hidden relative w-80 text-center">
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 animate-slideInRight key={message}">
-                        {message}
-                    </p>
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="h-5 overflow-hidden flex flex-col items-center w-64">
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider animate-fadeIn key={message}">
+                                {message}
+                            </span>
+                        </div>
+                        {/* Minimal Progress Bar */}
+                        <div className="w-48 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-indigo-500 animate-[loading_1.5s_ease-in-out_infinite] w-full origin-left-right"></div>
+                        </div>
+                    </div>
                 </div>
-
-                {/* Progress Bar */}
-                <div className="mt-8 w-64 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-indigo-500 bg-[length:200%_100%] animate-[shimmer_2s_infinite_linear]"
-                        style={{ width: '100%' }} // Indeterminate for now, or use progress state
-                    ></div>
-                </div>
-
             </div>
-
-
-
-            {/* Footer Hint */}
-            <div className="absolute bottom-8 text-xs text-slate-400 animate-pulse">
-                Preparando sua experiência...
-            </div>
-
         </div>,
         document.body
     );
