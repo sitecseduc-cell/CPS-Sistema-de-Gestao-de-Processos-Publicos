@@ -3,8 +3,8 @@ import { MessageSquare, X, Send, Bot, User, Loader } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { GeminiService } from '../services/GeminiService';
 
-export default function AiChatbot() {
-    const [isOpen, setIsOpen] = useState(false);
+export default function AiChatbot({ isOpen, onToggle }) {
+    // Removed internal isOpen state
     const [messages, setMessages] = useState([
         { id: 1, sender: 'bot', text: 'Olá! Sou o Assistente Inteligente do CPS, agora com acesso total aos dados do sistema. Pergunte sobre processos, vagas, candidatos ou auditoria!' }
     ]);
@@ -109,7 +109,7 @@ export default function AiChatbot() {
                             </div>
                         </div>
                         <button
-                            onClick={() => setIsOpen(false)}
+                            onClick={onToggle}
                             className="text-white/80 hover:text-white transition-colors"
                         >
                             <X size={18} />
@@ -169,7 +169,7 @@ export default function AiChatbot() {
 
             {/* Botão Flutuante */}
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={onToggle}
                 className={`pointer-events-auto p-4 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${isOpen
                     ? 'bg-red-500 hover:bg-red-600 rotate-90'
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-110 animate-bounce-slow'

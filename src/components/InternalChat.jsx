@@ -1,33 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Users, Globe, Hash, CornerDownLeft, ChevronLeft, User, Search } from 'lucide-react';
+import { MessageCircle, X, Send, Users, Globe, Hash, ChevronLeft, User, Search } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 
-export default function InternalChat() {
+export default function InternalChat({ isOpen, onToggle }) {
     const { user } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
+    // isOpen is now a prop
     const [activeTab, setActiveTab] = useState('global');
     const [selectedUser, setSelectedUser] = useState(null);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [usersList, setUsersList] = useState([]);
-    const [searchQuery, setSearchQuery] = useState(''); // New: Search state
+    const [searchQuery, setSearchQuery] = useState('');
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
 
-    // ... (Keep existing listener useEffects) ...
-    // Listen for external open requests
-    useEffect(() => {
-        const handleOpenChat = (event) => {
-            setIsOpen(true);
-            if (event.detail?.userId) {
-                fetchUserProfileAndOpen(event.detail.userId);
-            }
-        };
-        window.addEventListener('open-internal-chat', handleOpenChat);
-        return () => window.removeEventListener('open-internal-chat', handleOpenChat);
-    }, []);
+    // --- METHODS (Moved inside component) ---
 
     const fetchUserProfileAndOpen = async (uid) => {
         const { data } = await supabase.from('profiles').select('*').eq('id', uid).single();
@@ -37,37 +26,12 @@ export default function InternalChat() {
         }
     };
 
-    // Load Data
-    useEffect(() => {
-        if (!isOpen) return;
-
-        if (activeTab === 'users') {
-            fetchUsers();
-        }
-
-        if (activeTab === 'global' || activeTab === 'direct_chat') {
-            fetchMessages();
-            const channel = subscribeToMessages();
-            return () => { supabase.removeChannel(channel); };
-        }
-    }, [isOpen, activeTab, selectedUser]);
-
-    // Auto-scroll
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, isOpen, activeTab]);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    // ... (Keep fetch functions, but improved) ...
     const fetchUsers = async () => {
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
             .neq('id', user.id)
-            .order('full_name'); // Order by name
+            .order('full_name');
 
         if (error) console.error("Error fetching users:", error);
         else setUsersList(data || []);
@@ -78,9 +42,9 @@ export default function InternalChat() {
             let query = supabase
                 .from('chat_messages')
                 .select(`
-                    id, content, created_at, sender_id, receiver_id,
-                    sender:profiles!sender_id (full_name, avatar_url)
-                `)
+                        id, content, created_at, sender_id, receiver_id,
+                        sender:profiles!sender_id (full_name, avatar_url)
+                    `)
                 .order('created_at', { ascending: true })
                 .limit(50);
 
@@ -149,7 +113,6 @@ export default function InternalChat() {
         setMessages([]);
     };
 
-    // --- UTILS ---
     const getDateLabel = (date) => {
         const d = new Date(date);
         const today = new Date();
@@ -160,7 +123,48 @@ export default function InternalChat() {
         return d.toLocaleDateString();
     };
 
-    // Group messages by date
+    // --- EFFECTS ---
+
+    // Listen for external open requests
+    useEffect(() => {
+        const handleOpenChat = (event) => {
+            if (!isOpen && onToggle) {
+                onToggle();
+            }
+            if (event.detail?.userId) {
+                fetchUserProfileAndOpen(event.detail.userId);
+            }
+        };
+        window.addEventListener('open-internal-chat', handleOpenChat);
+        return () => window.removeEventListener('open-internal-chat', handleOpenChat);
+    }, [isOpen, onToggle]);
+
+    // Load Data
+    useEffect(() => {
+        if (!isOpen) return;
+
+        if (activeTab === 'users') {
+            fetchUsers();
+        }
+
+        if (activeTab === 'global' || activeTab === 'direct_chat') {
+            fetchMessages();
+            const channel = subscribeToMessages();
+            return () => { supabase.removeChannel(channel); };
+        }
+    }, [isOpen, activeTab, selectedUser]);
+
+    // Auto-scroll
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, isOpen, activeTab]);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // --- RENDER HELPERS ---
+
     const groupedMessages = messages.reduce((acc, msg) => {
         const dateLabel = getDateLabel(msg.created_at);
         if (!acc[dateLabel]) acc[dateLabel] = [];
@@ -168,7 +172,6 @@ export default function InternalChat() {
         return acc;
     }, {});
 
-    // Filtered Users
     const filteredUsers = usersList.filter(u =>
         (u.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -177,7 +180,7 @@ export default function InternalChat() {
     if (!user) return null;
 
     return (
-        <div className="fixed bottom-6 right-28 z-[60] flex flex-col items-end pointer-events-none font-sans">
+        <div className="fixed top-24 right-24 z-[60] flex flex-col items-end font-sans">
             {isOpen && (
                 <div className="mb-4 bg-white dark:bg-slate-800 w-80 md:w-96 h-[550px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden pointer-events-auto animate-fadeIn flex flex-col transform transition-all">
 
@@ -203,7 +206,7 @@ export default function InternalChat() {
                                 </div>
                             </div>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white hover:bg-slate-800 p-1.5 rounded-full transition-colors">
+                        <button onClick={onToggle} className="text-slate-400 hover:text-white hover:bg-slate-800 p-1.5 rounded-full transition-colors">
                             <X size={20} />
                         </button>
                     </div>
@@ -250,7 +253,6 @@ export default function InternalChat() {
                                             </div>
                                             {msgs.map((msg, idx) => {
                                                 const isMe = msg.sender_id === user.id;
-                                                // Check for sequence to group bubbles
                                                 const isSequence = idx > 0 && msgs[idx - 1].sender_id === msg.sender_id;
 
                                                 return (
@@ -343,17 +345,6 @@ export default function InternalChat() {
                     )}
                 </div>
             )}
-
-            {/* FLOATING TRIGGER BUTTON */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`pointer-events-auto p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center border-4 border-white dark:border-slate-800 group hover:scale-110 active:scale-95 ${isOpen
-                    ? 'bg-red-500 text-white rotate-90'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-            >
-                {isOpen ? <X size={24} /> : <MessageCircle size={24} className="group-hover:animate-bounce-slow" />}
-            </button>
         </div>
     );
 }

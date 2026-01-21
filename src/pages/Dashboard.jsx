@@ -98,10 +98,7 @@ export default function Dashboard() {
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-xs font-semibold mb-4">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Sistema Operacional
-              </div>
+
               <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-2">
                 Bem-vindo à <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200">CPS</span>
               </h1>
@@ -181,9 +178,12 @@ export default function Dashboard() {
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Visão geral do fluxo de candidatos</p>
               </div>
-              <button className="text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">
-                Ver Detalhes
-              </button>
+              <Link
+                to="/inscritos"
+                className="flex items-center gap-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-full shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5"
+              >
+                Ver Detalhes <ArrowRight size={14} />
+              </Link>
             </div>
 
             <div className="h-[300px] w-full flex items-center justify-center">

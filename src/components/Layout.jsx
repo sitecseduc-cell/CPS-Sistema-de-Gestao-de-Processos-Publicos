@@ -71,6 +71,9 @@ export default function Layout() {
   const [selectedLog, setSelectedLog] = useState(null);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
+  // Chat State
+  const [activeChat, setActiveChat] = useState('none'); // 'none', 'internal', 'ai'
+
   // Helper to format role name nicely
   const formatRoleName = (r) => {
     if (!r) return 'Carregando...';
@@ -248,7 +251,7 @@ export default function Layout() {
             <SidebarItem icon={BookOpen} label="Planejamento" to="/planejamento" />
             <SidebarItem icon={Layers} label="Processos" to="/processos" />
             <SidebarItem icon={Users} label="Inscritos" to="/inscritos" />
-            <SidebarItem icon={KanbanSquare} label="Convocação" to="/workflow" />
+            <SidebarItem icon={KanbanSquare} label="Fluxo PSS" to="/workflow" />
             <SidebarItem icon={Map} label="Lotação" to="/lotacao" />
           </SidebarGroup>
 
@@ -295,6 +298,21 @@ export default function Layout() {
           <div className="flex items-center space-x-4 md:space-x-6">
 
 
+
+            {/* System Status */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-600 dark:text-emerald-400 text-xs font-bold transition-all hover:bg-emerald-500/20 cursor-help" title="Sistema Online">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Sistema Online
+            </div>
+
+            {/* Chat Button */}
+            <button
+              onClick={() => setActiveChat(prev => prev === 'internal' ? 'none' : 'internal')}
+              className={`p-3 text-slate-500 hover:text-indigo-600 bg-white/50 dark:bg-black/20 rounded-full hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm border border-white/50 ${activeChat === 'internal' ? 'text-indigo-600 bg-white shadow-md' : ''}`}
+              title="Chat Geral"
+            >
+              <MessageCircle size={20} />
+            </button>
 
             {/* User Profile Pill */}
             <div className="hidden md:flex items-center gap-3 pl-1 pr-4 py-1.5 bg-white/60 dark:bg-black/20 rounded-full border border-white/50 dark:border-white/10 shadow-sm backdrop-blur-sm cursor-default hover:bg-white/80 transition-colors">
@@ -396,8 +414,14 @@ export default function Layout() {
       </main>
 
       <div id="chatbot-trigger">
-        <InternalChat />
-        <AiChatbot />
+        <InternalChat
+          isOpen={activeChat === 'internal'}
+          onToggle={() => setActiveChat(prev => prev === 'internal' ? 'none' : 'internal')}
+        />
+        <AiChatbot
+          isOpen={activeChat === 'ai'}
+          onToggle={() => setActiveChat(prev => prev === 'ai' ? 'none' : 'ai')}
+        />
       </div>
 
       <AuditDetailsModal
