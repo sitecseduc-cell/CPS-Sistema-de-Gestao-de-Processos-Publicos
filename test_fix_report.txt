@@ -8877,3 +8877,1214 @@ Ignored nodes: comments, script, style
 
 [1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/components/KanbanCard.jsx [22m[39m
+
+ [31mÔØ»[39m src/pages/Relatorios.test.jsx [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 31[2mms[22m[39m
+[31m     [31m├ù[31m renders export buttons[39m[32m 19[2mms[22m[39m
+[31m     [31m├ù[31m triggers CSV export when clicked[39m[32m 5[2mms[22m[39m
+[90mstdout[2m | src/pages/Login.test.jsx[2m > [22m[2mLogin Page[2m > [22m[2mcalls signIn on valid submit
+[22m[39mMOCK SIGNIN CALLED: [ [32m'test@example.com'[39m, [32m'password123'[39m ]
+
+ [31mÔØ»[39m src/pages/Login.test.jsx [2m([22m[2m4 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 4684[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m renders login form by default [33m 519[2mms[22m[39m
+[31m     [31m├ù[31m validates incorrect email[39m[33m 1735[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m calls signIn on valid submit [33m 1005[2mms[22m[39m
+[31m     [31m├ù[31m switches to register view[39m[33m 1419[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Suites 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/pages/Processos.test.jsx [ src/pages/Processos.test.jsx ]
+Error: Transform failed with 1 error:
+C:/PROJETOS/CPS-Sistema de Gest├úo/src/pages/Processos.jsx:71:0: ERROR: Unexpected "<<"
+  Plugin: vite:esbuild
+  File: C:/PROJETOS/CPS-Sistema de Gest├úo/src/pages/Processos.jsx:71:0
+  
+  Unexpected "<<"
+  69 |        toast.info("Lendo arquivo PDF...");
+  70 |        const text = await extractPdfText(file);
+  71 |  <<<<<<< HEAD
+     |  ^
+  72 |        setPdfText(text);
+  73 |  
+  
+ ÔØ» failureErrorWithLog node_modules/esbuild/lib/main.js:1467:15
+ ÔØ» node_modules/esbuild/lib/main.js:736:50
+ ÔØ» responseCallbacks.<computed> node_modules/esbuild/lib/main.js:603:9
+ ÔØ» handleIncomingPacket node_modules/esbuild/lib/main.js:658:12
+ ÔØ» Socket.readFromStdout node_modules/esbuild/lib/main.js:581:7
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/4]ÔÄ»
+
+ FAIL  src/pages/Kanban.test.jsx [ src/pages/Kanban.test.jsx ]
+Error: Transform failed with 1 error:
+C:/PROJETOS/CPS-Sistema de Gest├úo/src/pages/Kanban.test.jsx:1:0: ERROR: Unexpected "<<"
+  Plugin: vite:esbuild
+  File: C:/PROJETOS/CPS-Sistema de Gest├úo/src/pages/Kanban.test.jsx:1:0
+  
+  Unexpected "<<"
+  1  |  <<<<<<< HEAD
+     |  ^
+  2  |  import { render, screen, waitFor } from '@testing-library/react';
+  3  |  import { describe, test, expect, vi, beforeEach } from 'vitest';
+  
+ ÔØ» failureErrorWithLog node_modules/esbuild/lib/main.js:1467:15
+ ÔØ» node_modules/esbuild/lib/main.js:736:50
+ ÔØ» responseCallbacks.<computed> node_modules/esbuild/lib/main.js:603:9
+ ÔØ» handleIncomingPacket node_modules/esbuild/lib/main.js:658:12
+ ÔØ» Socket.readFromStdout node_modules/esbuild/lib/main.js:581:7
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/4]ÔÄ»
+
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/pages/Login.test.jsx > Login Page > validates incorrect email
+TestingLibraryElementError: Unable to find an element with the text: /E-mail inv.*lido/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+    >
+      <div
+        class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[100px] animate-float"
+      />
+      <div
+        class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-500/20 rounded-full blur-[100px] animate-float"
+        style="animation-delay: 2s;"
+      />
+      <div
+        class="w-full max-w-md glass-card p-8 md:p-10 relative z-10 border border-white/60 dark:border-white/10 shadow-2xl"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <div
+            class="inline-flex p-4 rounded-2xl bg-white/50 dark:bg-white/10 shadow-lg shadow-indigo-500/10 mb-6 group hover:scale-105 transition-all duration-300"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-hexagon h-12 w-12 text-indigo-600 dark:text-indigo-400 fill-indigo-500/10"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              />
+            </svg>
+          </div>
+          <h1
+            class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mb-2"
+          >
+            Bem-vindo de volta
+          </h1>
+          <p
+            class="text-slate-500 dark:text-slate-400 font-medium"
+          >
+            Acesse o portal do servidor
+          </p>
+        </div>
+        <form
+          class="space-y-5 animate-fadeIn"
+        >
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              E-mail
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-mail absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"
+                />
+                <rect
+                  height="16"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="email"
+                placeholder="nome@exemplo.com"
+                type="email"
+              />
+            </div>
+          </div>
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Senha
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="11"
+                  rx="2"
+                  ry="2"
+                  width="18"
+                  x="3"
+                  y="11"
+                />
+                <path
+                  d="M7 11V7a5 5 0 0 1 10 0v4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="password"
+                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
+                type="password"
+              />
+            </div>
+          </div>
+          <div
+            class="flex justify-end"
+          >
+            <button
+              class="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline transition-all"
+              type="button"
+            >
+              Esqueceu a senha?
+            </button>
+          </div>
+          <button
+            class="btn-primary-glass w-full py-3.5 flex items-center justify-center text-lg mt-4 disabled:opacity-70 disabled:cursor-not-allowed group"
+            type="submit"
+          >
+            <span
+              class="flex items-center gap-2"
+            >
+              Acessar
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-arrow-right group-hover:translate-x-1 transition-transform"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12h14"
+                />
+                <path
+                  d="m12 5 7 7-7 7"
+                />
+              </svg>
+            </span>
+          </button>
+        </form>
+        <div
+          class="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/10 text-center space-y-4"
+        >
+          <p
+            class="text-slate-600 dark:text-slate-400 text-sm"
+          >
+            Ainda n├úo tem conta?
+             
+            <button
+              class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+            >
+              Cadastre-se
+            </button>
+          </p>
+          <div
+            class="pt-2"
+          >
+            <button
+              class="text-xs font-semibold text-slate-500 hover:text-indigo-600 uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors"
+            >
+              <span
+                class="p-1 rounded bg-slate-100 dark:bg-slate-800"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-user"
+                  fill="none"
+                  height="12"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="12"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                  />
+                  <circle
+                    cx="12"
+                    cy="7"
+                    r="4"
+                  />
+                </svg>
+              </span>
+              Consultar Situa├º├úo do Candidato
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="absolute bottom-4 text-center w-full text-[10px] text-slate-400/60 font-medium"
+      >
+        ┬® 2026 Sistema de Gest├úo de Processos Seletivos ÔÇó Gov. Par├í
+      </div>
+    </div>
+  </div>
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+    >
+      <div
+        class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[100px] animate-float"
+      />
+      <div
+        class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-500/20 rounded-full blur-[100px] animate-float"
+        style="animation-delay: 2s;"
+      />
+      <div
+        class="w-full max-w-md glass-card p-8 md:p-10 relative z-10 border border-white/60 dark:border-white/10 shadow-2xl"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <div
+            class="inline-flex p-4 rounded-2xl bg-white/50 dark:bg-white/10 shadow-lg shadow-indigo-500/10 mb-6 group hover:scale-105 transition-all duration-300"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-hexagon h-12 w-12 text-indigo-600 dark:text-indigo-400 fill-indigo-500/10"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              />
+            </svg>
+          </div>
+          <h1
+            class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mb-2"
+          >
+            Bem-vindo de volta
+          </h1>
+          <p
+            class="text-slate-500 dark:text-slate-400 font-medium"
+          >
+            Acesse o portal do servidor
+          </p>
+        </div>
+        <form
+          class="space-y-5 animate-fadeIn"
+        >
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              E-mail
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-mail absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"
+                />
+                <rect
+                  height="16"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="email"
+                placeholder="nome@exemplo.com"
+                type="email"
+              />
+            </div>
+          </div>
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Senha
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="11"
+                  rx="2"
+                  ry="2"
+                  width="18"
+                  x="3"
+                  y="11"
+                />
+                <path
+                  d="M7 11V7a5 5 0 0 1 10 0v4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="password"
+                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
+                type="password"
+              />
+            </div>
+          </div>
+          <div
+            class="flex justify-end"
+          >
+            <button
+              class="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline transition-all"
+              type="button"
+            >
+              Esqueceu a senha?
+            </button>
+          </div>
+          <button
+            class="btn-primary-glass w-full py-3.5 flex items-center justify-center text-lg mt-4 disabled:opacity-70 disabled:cursor-not-allowed group"
+            type="submit"
+          >
+            <span
+              class="flex items-center gap-2"
+            >
+              Acessar
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-arrow-right group-hover:translate-x-1 transition-transform"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12h14"
+                />
+                <path
+                  d="m12 5 7 7-7 7"
+                />
+              </svg>
+            </span>
+          </button>
+        </form>
+        <div
+          class="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/10 text-center space-y-4"
+        >
+          <p
+            class="text-slate-600 dark:text-slate-400 text-sm"
+          >
+            Ainda n├úo tem conta?
+             
+            <button
+              class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+            >
+              Cadastre-se
+            </button>
+          </p>
+          <div
+            class="pt-2"
+          >
+            <button
+              class="text-xs font-semibold text-slate-500 hover:text-indigo-600 uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors"
+            >
+              <span
+                class="p-1 rounded bg-slate-100 dark:bg-slate-800"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-user"
+                  fill="none"
+                  height="12"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="12"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                  />
+                  <circle
+                    cx="12"
+                    cy="7"
+                    r="4"
+                  />
+                </svg>
+              </span>
+              Consultar Situa├º├úo do Candidato
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="absolute bottom-4 text-center w-full text-[10px] text-slate-400/60 font-medium"
+      >
+        ┬® 2026 Sistema de Gest├úo de Processos Seletivos ÔÇó Gov. Par├í
+      </div>
+    </div>
+  </div>
+</body>
+ ÔØ» waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ÔØ» src/pages/Login.test.jsx:55:29
+     53|         await user.click(submitBtn);
+     54| 
+     55|         expect(await screen.findByText(/E-mail inv.*lido/i)).toBeInTheÔÇª
+       |                             ^
+     56|     });
+     57| 
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[3/4]ÔÄ»
+
+ FAIL  src/pages/Login.test.jsx > Login Page > switches to register view
+TestingLibraryElementError: Found multiple elements with the text: Criar Conta
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<h1
+  class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mb-2"
+>
+  Criar Conta
+</h1>
+
+Ignored nodes: comments, script, style
+<span
+  class="flex items-center gap-2"
+>
+  Criar Conta
+  <svg
+    aria-hidden="true"
+    class="lucide lucide-arrow-right group-hover:translate-x-1 transition-transform"
+    fill="none"
+    height="20"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="20"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M5 12h14"
+    />
+    <path
+      d="m12 5 7 7-7 7"
+    />
+  </svg>
+</span>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+    >
+      <div
+        class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[100px] animate-float"
+      />
+      <div
+        class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-500/20 rounded-full blur-[100px] animate-float"
+        style="animation-delay: 2s;"
+      />
+      <div
+        class="w-full max-w-md glass-card p-8 md:p-10 relative z-10 border border-white/60 dark:border-white/10 shadow-2xl"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <div
+            class="inline-flex p-4 rounded-2xl bg-white/50 dark:bg-white/10 shadow-lg shadow-indigo-500/10 mb-6 group hover:scale-105 transition-all duration-300"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-hexagon h-12 w-12 text-indigo-600 dark:text-indigo-400 fill-indigo-500/10"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              />
+            </svg>
+          </div>
+          <h1
+            class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mb-2"
+          >
+            Criar Conta
+          </h1>
+          <p
+            class="text-slate-500 dark:text-slate-400 font-medium"
+          >
+            Junte-se ├á nossa plataforma
+          </p>
+        </div>
+        <form
+          class="space-y-5 animate-fadeIn"
+        >
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Nome Completo
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="name"
+                placeholder="Digite seu nome"
+                type="text"
+              />
+            </div>
+          </div>
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              E-mail
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-mail absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"
+                />
+                <rect
+                  height="16"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="email"
+                placeholder="nome@exemplo.com"
+                type="email"
+              />
+            </div>
+          </div>
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Senha
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="11"
+                  rx="2"
+                  ry="2"
+                  width="18"
+                  x="3"
+                  y="11"
+                />
+                <path
+                  d="M7 11V7a5 5 0 0 1 10 0v4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="password"
+                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
+                type="password"
+              />
+            </div>
+          </div>
+          <div
+            class="group animate-fadeIn"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Confirmar Senha
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="11"
+                  rx="2"
+                  ry="2"
+                  width="18"
+                  x="3"
+                  y="11"
+                />
+                <path
+                  d="M7 11V7a5 5 0 0 1 10 0v4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="confirmPassword"
+                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
+                type="password"
+              />
+            </div>
+          </div>
+          <button
+            class="btn-primary-glass w-full py-3.5 flex items-center justify-center text-lg mt-4 disabled:opacity-70 disabled:cursor-not-allowed group"
+            type="submit"
+          >
+            <span
+              class="flex items-center gap-2"
+            >
+              Criar Conta
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-arrow-right group-hover:translate-x-1 transition-transform"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12h14"
+                />
+                <path
+                  d="m12 5 7 7-7 7"
+                />
+              </svg>
+            </span>
+          </button>
+        </form>
+        <div
+          class="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/10 text-center space-y-4"
+        >
+          <button
+            class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-semibold flex items-center justify-center mx-auto gap-2 text-sm transition-colors"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-arrow-left"
+              fill="none"
+              height="16"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m12 19-7-7 7-7"
+              />
+              <path
+                d="M19 12H5"
+              />
+            </svg>
+             Voltar para Acesso
+          </button>
+        </div>
+      </div>
+      <div
+        class="absolute bottom-4 text-center w-full text-[10px] text-slate-400/60 font-medium"
+      >
+        ┬® 2026 Sistema de Gest├úo de Processos Seletivos ÔÇó Gov. Par├í
+      </div>
+    </div>
+  </div>
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+    >
+      <div
+        class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[100px] animate-float"
+      />
+      <div
+        class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-500/20 rounded-full blur-[100px] animate-float"
+        style="animation-delay: 2s;"
+      />
+      <div
+        class="w-full max-w-md glass-card p-8 md:p-10 relative z-10 border border-white/60 dark:border-white/10 shadow-2xl"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <div
+            class="inline-flex p-4 rounded-2xl bg-white/50 dark:bg-white/10 shadow-lg shadow-indigo-500/10 mb-6 group hover:scale-105 transition-all duration-300"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-hexagon h-12 w-12 text-indigo-600 dark:text-indigo-400 fill-indigo-500/10"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+              />
+            </svg>
+          </div>
+          <h1
+            class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mb-2"
+          >
+            Criar Conta
+          </h1>
+          <p
+            class="text-slate-500 dark:text-slate-400 font-medium"
+          >
+            Junte-se ├á nossa plataforma
+          </p>
+        </div>
+        <form
+          class="space-y-5 animate-fadeIn"
+        >
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Nome Completo
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="name"
+                placeholder="Digite seu nome"
+                type="text"
+              />
+            </div>
+          </div>
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              E-mail
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-mail absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"
+                />
+                <rect
+                  height="16"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="email"
+                placeholder="nome@exemplo.com"
+                type="email"
+              />
+            </div>
+          </div>
+          <div
+            class="group"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Senha
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="11"
+                  rx="2"
+                  ry="2"
+                  width="18"
+                  x="3"
+                  y="11"
+                />
+                <path
+                  d="M7 11V7a5 5 0 0 1 10 0v4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="password"
+                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
+                type="password"
+              />
+            </div>
+          </div>
+          <div
+            class="group animate-fadeIn"
+          >
+            <label
+              class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1"
+            >
+              Confirmar Senha
+            </label>
+            <div
+              class="relative"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="11"
+                  rx="2"
+                  ry="2"
+                  width="18"
+                  x="3"
+                  y="11"
+                />
+                <path
+                  d="M7 11V7a5 5 0 0 1 10 0v4"
+                />
+              </svg>
+              <input
+                class="input-glass w-full pl-12 "
+                name="confirmPassword"
+                placeholder="ÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇóÔÇó"
+                type="password"
+              />
+            </div>
+          </div>
+          <button
+            class="btn-primary-glass w-full py-3.5 flex items-center justify-center text-lg mt-4 disabled:opacity-70 disabled:cursor-not-allowed group"
+            type="submit"
+          >
+            <span
+              class="flex items-center gap-2"
+            >
+              Criar Conta
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-arrow-right group-hover:translate-x-1 transition-transform"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12h14"
+                />
+                <path
+                  d="m12 5 7 7-7 7"
+                />
+              </svg>
+            </span>
+          </button>
+        </form>
+        <div
+          class="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/10 text-center space-y-4"
+        >
+          <button
+            class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-semibold flex items-center justify-center mx-auto gap-2 text-sm transition-colors"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-arrow-left"
+              fill="none"
+              height="16"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m12 19-7-7 7-7"
+              />
+              <path
+                d="M19 12H5"
+              />
+            </svg>
+             Voltar para Acesso
+          </button>
+        </div>
+      </div>
+      <div
+        class="absolute bottom-4 text-center w-full text-[10px] text-slate-400/60 font-medium"
+      >
+        ┬® 2026 Sistema de Gest├úo de Processos Seletivos ÔÇó Gov. Par├í
+      </div>
+    </div>
+  </div>
+</body>
+ ÔØ» waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ÔØ» src/pages/Login.test.jsx:80:29
+
+     78|         await user.click(registerLink);
+     79| 
+     80|         expect(await screen.findByText('Criar Conta')).toBeInTheDocumeÔÇª
+       |                             ^
+     81|         expect(screen.getByPlaceholderText('Digite seu nome')).toBeInTÔÇª
+     82|     });
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[4/4]ÔÄ»
+
+[2m Test Files [22m [1m[31m4 failed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 16:45:42
+[2m   Duration [22m 14.76s
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m

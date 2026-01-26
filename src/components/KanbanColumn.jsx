@@ -2,7 +2,7 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import KanbanCard from './KanbanCard';
 
-export default function KanbanColumn({ id, title, items, colorHeader }) {
+export default function KanbanColumn({ id, title, items, colorHeader, onEditItem, onDeleteItem }) {
   // Hook que torna a coluna uma "área onde se pode soltar itens"
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -10,7 +10,7 @@ export default function KanbanColumn({ id, title, items, colorHeader }) {
 
   // Estilização dinâmica
   const getBorderColor = (colId) => {
-    switch(colId) {
+    switch (colId) {
       case 'planejamento': return 'border-slate-400';
       case 'publicado': return 'border-blue-500';
       case 'analise': return 'border-indigo-500';
@@ -28,22 +28,23 @@ export default function KanbanColumn({ id, title, items, colorHeader }) {
       </div>
 
       {/* Área Dropável (Onde os cards ficam) */}
-      <div 
-        ref={setNodeRef} 
-        className={`flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar ${
-          isOver ? 'bg-blue-50 border-blue-300 border-dashed' : 'bg-slate-100/50 border-dashed border-slate-200'
-        }`}
+      <div
+        ref={setNodeRef}
+        className={`flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar ${isOver ? 'bg-blue-50 border-blue-300 border-dashed' : 'bg-slate-100/50 border-dashed border-slate-200'
+          }`}
       >
         {items.map((item) => (
-          <KanbanCard 
-            key={item.id} 
-            id={item.id} 
-            title={item.title} 
-            date={item.date} 
+          <KanbanCard
+            key={item.id}
+            id={item.id}
+            title={item.title}
+            date={item.date}
             color={getBorderColor(id)}
+            onEdit={() => onEditItem(item)}
+            onDelete={() => onDeleteItem(item)}
           />
         ))}
-        
+
         {items.length === 0 && !isOver && (
           <div className="h-20 flex items-center justify-center text-slate-300 text-xs italic">
             Arraste itens aqui

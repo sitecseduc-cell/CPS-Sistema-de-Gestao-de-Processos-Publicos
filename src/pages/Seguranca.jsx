@@ -3,21 +3,70 @@ import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
 import {
     Shield, Lock, Key, Smartphone,
-    AlertTriangle, Server, CheckCircle, LogIn
+    AlertTriangle, Server, CheckCircle, LogIn, User
 } from 'lucide-react';
 
 export default function Seguranca() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+    const [profileData, setProfileData] = useState({ full_name: '', matricula: '' });
+    const [loadingProfile, setLoadingProfile] = useState(false);
 
     useEffect(() => {
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
+            if (user) {
+                // Fetch profile data
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (data) {
+                    setProfileData({
+                        full_name: data.full_name || '',
+                        matricula: data.matricula || ''
+                    });
+                }
+            }
         };
         getUser();
     }, []);
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        setLoadingProfile(true);
+        try {
+            // Update profiles table
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    full_name: profileData.full_name,
+                    matricula: profileData.matricula
+                })
+                .eq('id', user.id);
+
+            if (error) throw error;
+
+            // Sync with auth metadata (optional but recommended for header updates)
+            await supabase.auth.updateUser({
+                data: { full_name: profileData.full_name }
+            });
+
+            toast.success('Perfil atualizado com sucesso!');
+
+            // Force reload to update header if necessary, or just rely on state if standard used context
+            // window.location.reload(); 
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao atualizar perfil.');
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
@@ -54,7 +103,43 @@ export default function Seguranca() {
                 {/* Coluna 1: Perfil e Senha */}
                 <div className="lg:col-span-2 space-y-8">
 
-
+                    {/* Card de Dados Pessoais */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <User size={20} className="text-blue-500" /> Dados Pessoais
+                        </h3>
+                        <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-md">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Nome Completo</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={profileData.full_name}
+                                    onChange={e => setProfileData({ ...profileData, full_name: e.target.value })}
+                                    placeholder="Seu nome completo"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-600 mb-1">Matrícula</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={profileData.matricula}
+                                    onChange={e => setProfileData({ ...profileData, matricula: e.target.value })}
+                                    placeholder="000000"
+                                />
+                            </div>
+                            <div className="pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={loadingProfile}
+                                    className="px-6 py-2 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-900 transition-colors disabled:opacity-50"
+                                >
+                                    {loadingProfile ? 'Salvando...' : 'Salvar Alterações'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                     {/* Card de Alterar Senha */}
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
