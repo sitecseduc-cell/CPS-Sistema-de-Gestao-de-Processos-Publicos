@@ -109,12 +109,8 @@ const Sidebar = ({ user, onLogout, isMobileSidebarOpen, setIsMobileSidebarOpen }
             <p className="text-xs text-gray-500 dark:text-gray-400">{user?.role}</p>
           </div>
           <button
-            onClick={() => {
-              console.log('Botão de logout clicado');
-              if (onLogout) onLogout();
-              else console.error('onLogout function not provided!');
-            }}
-            className="p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 transition-all"
+            onClick={onLogout}
+            className="p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 transition-all relative z-50 cursor-pointer"
             title="Sair"
           >
             <Icon name="logOut" className="h-5 w-5" />
