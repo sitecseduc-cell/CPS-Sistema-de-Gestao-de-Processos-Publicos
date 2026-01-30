@@ -5,6 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../supabaseClient';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import CommandPalette from '../components/CommandPalette';
 
 const DashboardLayout = () => {
   const { user } = useAuth();
@@ -29,6 +30,9 @@ const DashboardLayout = () => {
 
       {/* Content Container */}
       <div className="relative z-10 flex h-full w-full p-4 gap-4">
+        {/* Command Palette - Global Search */}
+        <CommandPalette />
+
         {/* Sidebar with Glassmorphism */}
         <Sidebar
           user={user}
