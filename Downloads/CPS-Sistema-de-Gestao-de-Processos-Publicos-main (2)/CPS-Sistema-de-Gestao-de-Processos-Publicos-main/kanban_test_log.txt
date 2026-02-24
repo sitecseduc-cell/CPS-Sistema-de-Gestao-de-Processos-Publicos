@@ -1,0 +1,389 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90mC:/PROJETOS/CPS-Sistema de Gest├úo[39m
+
+stderr | src/pages/Kanban.test.jsx > Kanban Page > renders loading state initially
+An update to Kanban inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Kanban inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ [31mÔØ»[39m src/pages/Kanban.test.jsx [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 1080[2mms[22m[39m
+[31m     [31m├ù[31m renders loading state initially[39m[32m 50[2mms[22m[39m
+[31m     [31m├ù[31m renders columns and cards after loading[39m[33m 1027[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/pages/Kanban.test.jsx > Kanban Page > renders loading state initially
+Error: expect(received).toBeInTheDocument()
+
+received value must be an HTMLElement or an SVGElement.
+Received has type:  Null
+Received has value: null
+ ÔØ» src/pages/Kanban.test.jsx:42:25
+     40|         // Check for loading spinner using class
+     41|         const spinner = container.querySelector('.animate-spin');
+     42|         expect(spinner).toBeInTheDocument();
+       |                         ^
+     43|     });
+     44| 
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/2]ÔÄ»
+
+ FAIL  src/pages/Kanban.test.jsx > Kanban Page > renders columns and cards after loading
+TestingLibraryElementError: Unable to find an element with the text: Fluxo de Trabalho. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="h-[calc(100vh-140px)] animate-fadeIn flex flex-col relative"
+    >
+      <div
+        class="flex justify-between items-center mb-6 px-2"
+      >
+        <div>
+          <h2
+            class="text-2xl font-bold text-slate-800"
+          >
+            Fluxo de Convoca├º├úo
+          </h2>
+          <p
+            class="text-slate-500 text-sm"
+          >
+            Gerenciando fluxo: 
+            <strong
+              class="text-blue-600"
+            >
+              Todos os Processos
+            </strong>
+          </p>
+        </div>
+      </div>
+      <div
+        class="flex-1 flex overflow-x-auto pb-4 custom-scrollbar"
+      >
+        <div
+          class="min-w-[300px] flex flex-col h-full mx-2"
+        >
+          <div
+            class="flex items-center justify-between mb-3 px-4 py-3 bg-slate-200 rounded-xl shadow-sm"
+          >
+            <h4
+              class="font-bold text-sm text-slate-700"
+            >
+              Classificados / Aguardando
+            </h4>
+            <span
+              class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+            >
+              0
+            </span>
+          </div>
+          <div
+            class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+          >
+            <div
+              class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+            >
+              Arraste itens aqui
+            </div>
+          </div>
+        </div>
+        <div
+          class="min-w-[300px] flex flex-col h-full mx-2"
+        >
+          <div
+            class="flex items-center justify-between mb-3 px-4 py-3 bg-blue-200 rounded-xl shadow-sm"
+          >
+            <h4
+              class="font-bold text-sm text-slate-700"
+            >
+              Em An├ílise Documental
+            </h4>
+            <span
+              class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+            >
+              0
+            </span>
+          </div>
+          <div
+            class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+          >
+            <div
+              class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+            >
+              Arraste itens aqui
+            </div>
+          </div>
+        </div>
+        <div
+          class="min-w-[300px] flex flex-col h-full mx-2"
+        >
+          <div
+            class="flex items-center justify-between mb-3 px-4 py-3 bg-orange-200 rounded-xl shadow-sm"
+          >
+            <h4
+              class="font-bold text-sm text-slate-700"
+            >
+              Pend├¬ncia / Recurso
+            </h4>
+            <span
+              class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+            >
+              0
+            </span>
+          </div>
+          <div
+            class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+          >
+            <div
+              class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+            >
+              Arraste itens aqui
+            </div>
+          </div>
+        </div>
+        <div
+          class="min-w-[300px] flex flex-col h-full mx-2"
+        >
+          <div
+            class="flex items-center justify-between mb-3 px-4 py-3 bg-emerald-200 rounded-xl shadow-sm"
+          >
+            <h4
+              class="font-bold text-sm text-slate-700"
+            >
+              Homologado / Contratado
+            </h4>
+            <span
+              class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+            >
+              0
+            </span>
+          </div>
+          <div
+            class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+          >
+            <div
+              class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+            >
+              Arraste itens aqui
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        id="DndDescribedBy-0"
+        style="display: none;"
+      >
+        
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  
+      </div>
+      <div
+        aria-atomic="true"
+        aria-live="assertive"
+        id="DndLiveRegion-0"
+        role="status"
+        style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px); clip-path: inset(100%); white-space: nowrap;"
+      />
+    </div>
+  </div>
+</body>
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="h-[calc(100vh-140px)] animate-fadeIn flex flex-col relative"
+      >
+        <div
+          class="flex justify-between items-center mb-6 px-2"
+        >
+          <div>
+            <h2
+              class="text-2xl font-bold text-slate-800"
+            >
+              Fluxo de Convoca├º├úo
+            </h2>
+            <p
+              class="text-slate-500 text-sm"
+            >
+              Gerenciando fluxo: 
+              <strong
+                class="text-blue-600"
+              >
+                Todos os Processos
+              </strong>
+            </p>
+          </div>
+        </div>
+        <div
+          class="flex-1 flex overflow-x-auto pb-4 custom-scrollbar"
+        >
+          <div
+            class="min-w-[300px] flex flex-col h-full mx-2"
+          >
+            <div
+              class="flex items-center justify-between mb-3 px-4 py-3 bg-slate-200 rounded-xl shadow-sm"
+            >
+              <h4
+                class="font-bold text-sm text-slate-700"
+              >
+                Classificados / Aguardando
+              </h4>
+              <span
+                class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+              >
+                0
+              </span>
+            </div>
+            <div
+              class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+            >
+              <div
+                class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+              >
+                Arraste itens aqui
+              </div>
+            </div>
+          </div>
+          <div
+            class="min-w-[300px] flex flex-col h-full mx-2"
+          >
+            <div
+              class="flex items-center justify-between mb-3 px-4 py-3 bg-blue-200 rounded-xl shadow-sm"
+            >
+              <h4
+                class="font-bold text-sm text-slate-700"
+              >
+                Em An├ílise Documental
+              </h4>
+              <span
+                class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+              >
+                0
+              </span>
+            </div>
+            <div
+              class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+            >
+              <div
+                class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+              >
+                Arraste itens aqui
+              </div>
+            </div>
+          </div>
+          <div
+            class="min-w-[300px] flex flex-col h-full mx-2"
+          >
+            <div
+              class="flex items-center justify-between mb-3 px-4 py-3 bg-orange-200 rounded-xl shadow-sm"
+            >
+              <h4
+                class="font-bold text-sm text-slate-700"
+              >
+                Pend├¬ncia / Recurso
+              </h4>
+              <span
+                class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+              >
+                0
+              </span>
+            </div>
+            <div
+              class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+            >
+              <div
+                class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+              >
+                Arraste itens aqui
+              </div>
+            </div>
+          </div>
+          <div
+            class="min-w-[300px] flex flex-col h-full mx-2"
+          >
+            <div
+              class="flex items-center justify-between mb-3 px-4 py-3 bg-emerald-200 rounded-xl shadow-sm"
+            >
+              <h4
+                class="font-bold text-sm text-slate-700"
+              >
+                Homologado / Contratado
+              </h4>
+              <span
+                class="bg-white/50 px-2 py-0.5 rounded-md text-xs font-bold text-slate-600"
+              >
+                0
+              </span>
+            </div>
+            <div
+              class="flex-1 rounded-xl p-3 border-2 transition-colors overflow-y-auto custom-scrollbar bg-slate-100/50 border-dashed border-slate-200"
+            >
+              <div
+                class="h-20 flex items-center justify-center text-slate-300 text-xs italic"
+              >
+                Arraste itens aqui
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          id="DndDescribedBy-0"
+          style="display: none;"
+        >
+          
+    To pick up a draggable item, press the space bar.
+    While dragging, use the arrow keys to move the item.
+    Press space again to drop the item in its new position, or press escape to cancel.
+  
+        </div>
+        <div
+          aria-atomic="true"
+          aria-live="assertive"
+          id="DndLiveRegion-0"
+          role="status"
+          style="position: fixed; top: 0px; left: 0px; width: 1px; height: 1px; margin: -1px; border: 0px; padding: 0px; overflow: hidden; clip: rect(0px); clip-path: inset(100%); white-space: nowrap;"
+        />
+      </div>
+    </div>
+  </body>
+</html>
+ ÔØ» Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ÔØ» src/pages/Kanban.test.jsx:59:15
+     57|         );
+     58| 
+     59|         await waitFor(() => {
+       |               ^
+     60|             expect(screen.getByText('Fluxo de Trabalho')).toBeInTheDocÔÇª
+     61|         });
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/2]ÔÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m   Start at [22m 16:29:35
+[2m   Duration [22m 4.47s[2m (transform 294ms, setup 1.25s, import 440ms, tests 1.08s, environment 1.29s)[22m
+
