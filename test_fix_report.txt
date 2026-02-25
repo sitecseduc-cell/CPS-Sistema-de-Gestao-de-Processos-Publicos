@@ -10088,3 +10088,85 @@ Ignored nodes: comments, script, style
 
 [1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/pages/Kanban.test.jsx [22m[34mx9 [34m[39m
+
+ [31mÔØ»[39m src/pages/Relatorios.test.jsx [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 31[2mms[22m[39m
+[31m     [31m├ù[31m renders export buttons[39m[32m 19[2mms[22m[39m
+[31m     [31m├ù[31m triggers CSV export when clicked[39m[32m 5[2mms[22m[39m
+ [31mÔØ»[39m src/pages/Login.test.jsx [2m([22m[2m4 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 4684[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m renders login form by default [33m 519[2mms[22m[39m
+[31m     [31m├ù[31m validates incorrect email[39m[33m 1735[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m calls signIn on valid submit [33m 1005[2mms[22m[39m
+[31m     [31m├ù[31m switches to register view[39m[33m 1419[2mms[22m[39m
+ [31mÔØ»[39m src/pages/Processos.test.jsx [2m([22m[2m0 test[22m[2m)[22m
+ [32mÔ£ô[39m src/pages/Kanban.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[33m 389[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 16:47:17
+[2m   Duration [22m 2.24s
+
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/services/GeminiService.js [22m[34mx2 [34m[39m
+
+ [31mÔØ»[39m src/pages/Relatorios.test.jsx [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 31[2mms[22m[39m
+[31m     [31m├ù[31m renders export buttons[39m[32m 19[2mms[22m[39m
+[31m     [31m├ù[31m triggers CSV export when clicked[39m[32m 5[2mms[22m[39m
+ [31mÔØ»[39m src/pages/Login.test.jsx [2m([22m[2m4 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 4684[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m renders login form by default [33m 519[2mms[22m[39m
+[31m     [31m├ù[31m validates incorrect email[39m[33m 1735[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m calls signIn on valid submit [33m 1005[2mms[22m[39m
+[31m     [31m├ù[31m switches to register view[39m[33m 1419[2mms[22m[39m
+stderr | src/pages/Processos.test.jsx > Processos Page > renders title and button
+An update to Processos inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Processos inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Processos inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Processos inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ [32mÔ£ô[39m src/pages/Processos.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[33m 455[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m renders list of processes after fetch [33m 309[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 16:47:23
+[2m   Duration [22m 2.63s
+
+[1m[42m PASS [49m[22m [32mWaiting for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
