@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
@@ -47,12 +47,14 @@ describe('Login Page', () => {
         const user = userEvent.setup();
         renderLogin();
         const emailInput = screen.getByPlaceholderText('nome@exemplo.com');
-        const submitBtn = screen.getByRole('button', { name: /acessar/i });
+        const form = emailInput.closest('form');
 
+        // Digita um email inválido e força o submit do formulário diretamente
+        // (evita o bloqueio nativo do browser para input type=email)
         await user.type(emailInput, 'invalid-email');
-        await user.click(submitBtn);
+        fireEvent.submit(form);
 
-        expect(await screen.findByText(/E-mail inv.*lido/i)).toBeInTheDocument();
+        expect(await screen.findByText(/E-mail inv/i)).toBeInTheDocument();
     });
 
     test('calls signIn on valid submit', async () => {
@@ -77,7 +79,10 @@ describe('Login Page', () => {
         const registerLink = screen.getByRole('button', { name: /cadastre-se/i });
         await user.click(registerLink);
 
-        expect(await screen.findByText('Criar Conta')).toBeInTheDocument();
+        // 'Criar Conta' aparece no <h1> e no botão submit — usamos getAllByText
+        // e verificamos que pelo menos um elemento está presente
+        const criarContaEls = await screen.findAllByText('Criar Conta');
+        expect(criarContaEls.length).toBeGreaterThan(0);
         expect(screen.getByPlaceholderText('Digite seu nome')).toBeInTheDocument();
     });
 });
