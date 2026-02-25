@@ -4,9 +4,13 @@
 
 import { supabase } from '../lib/supabaseClient';
 
-/** Fetch all candidates */
-export const fetchCandidatos = async () => {
-  const { data, error } = await supabase.from('candidatos').select('*');
+/** Fetch candidates with optional pagination */
+export const fetchCandidatos = async ({ limit = 500, offset = 0 } = {}) => {
+  const { data, error } = await supabase
+    .from('candidatos')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
   if (error) throw error;
   return data;
 };
@@ -27,7 +31,7 @@ export const createCandidato = async (candidato) => {
     email: candidato.email,
     telefone: candidato.telefone,
     // Se no banco a coluna se chama 'cargo_pretendido' (como no script de migração):
-    cargo_pretendido: candidato.vaga, 
+    cargo_pretendido: candidato.vaga,
     status: 'Inscrito'
   };
 

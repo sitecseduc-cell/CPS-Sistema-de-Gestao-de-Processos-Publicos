@@ -22,20 +22,18 @@ vi.mock('../lib/supabaseClient', () => ({
 }));
 
 // Setup chainable mocks
-mockSelect.mockReturnThis();
-mockInsert.mockReturnThis();
-mockUpdate.mockReturnThis();
-
-// Eq is usually at the end of update/select chains, so handling it specifically in tests or generic setup
-// Actually, supabase.from().select() returns a promise-like or {data, error} immediately in simple mocks, 
-// but often it is chainable. .eq() follows update/select.
-// Let's refine the mock structure.
+const mockOrder = vi.fn();
+const mockRange = vi.fn();
 
 describe('Candidatos Service', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        // Default chain behavior
+        // fetchCandidatos chain: from().select().order().range()
+        mockRange.mockResolvedValue({ data: [], error: null });
+        mockOrder.mockReturnValue({ range: mockRange });
+        mockSelect.mockReturnValue({ order: mockOrder });
+
         mockFrom.mockReturnValue({
             select: mockSelect,
             insert: mockInsert,
@@ -43,21 +41,22 @@ describe('Candidatos Service', () => {
         });
 
         mockUpdate.mockReturnValue({ eq: mockEq });
-        mockSelect.mockResolvedValue({ data: [], error: null });
         mockInsert.mockReturnValue({
             select: vi.fn().mockResolvedValue({ data: [{}], error: null })
         });
         mockEq.mockResolvedValue({ error: null });
     });
 
-    it('fetchCandidatos should call supabase select', async () => {
+    it('fetchCandidatos should call supabase with order and pagination', async () => {
         const mockData = [{ id: 1, nome: 'Test' }];
-        mockSelect.mockResolvedValue({ data: mockData, error: null });
+        mockRange.mockResolvedValue({ data: mockData, error: null });
 
         const result = await fetchCandidatos();
 
         expect(mockFrom).toHaveBeenCalledWith('candidatos');
         expect(mockSelect).toHaveBeenCalledWith('*');
+        expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false });
+        expect(mockRange).toHaveBeenCalledWith(0, 499); // limit=500, offset=0 => range(0, 499)
         expect(result).toEqual(mockData);
     });
 

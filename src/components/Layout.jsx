@@ -62,6 +62,7 @@ const SidebarGroup = ({ title, children }) => (
 
 export default function Layout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut, isAdmin, role } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -390,7 +391,7 @@ export default function Layout() {
           {/* Scrollable Main View */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:px-8 pb-20 custom-scrollbar scroll-smooth">
             <div className="max-w-[1600px] mx-auto w-full animate-fadeIn">
-              <div key={useLocation().pathname} className="animate-page-transition w-full h-full">
+              <div key={location.pathname} className="animate-page-transition w-full h-full">
                 <Outlet />
               </div>
             </div>

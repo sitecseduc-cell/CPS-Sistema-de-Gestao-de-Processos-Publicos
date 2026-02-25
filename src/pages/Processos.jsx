@@ -3,13 +3,13 @@ import { Plus, Edit, FileText, Calendar, Layers, Trash2, Sparkles, Upload } from
 import { supabase } from '../lib/supabaseClient';
 import NewProcessModal from '../components/NewProcessModal';
 import AnalysisModal from '../components/AnalysisModal';
+import ConfirmModal from '../components/ConfirmModal';
 import TableSkeleton from '../components/TableSkeleton';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import * as pdfjsLib from 'pdfjs-dist';
 import { GeminiService } from '../services/GeminiService';
 import { fetchProcessos, createProcesso, updateProcesso, deleteProcesso } from '../services/processos';
-import ImmersiveLoader from '../components/ImmersiveLoader';
 
 // Configurar worker do PDF.js (usando arquivo na pasta public)
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -25,6 +25,7 @@ export default function Processos() {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [pdfText, setPdfText] = useState('');
+  const [confirmState, setConfirmState] = useState({ open: false, id: null });
 
   // Initial Fetch
   useEffect(() => {
@@ -161,11 +162,6 @@ ${dados.sugestoes_ia?.join('\n- ') || ''}
     setIsModalOpen(true);
   };
 
-  // Initial Fetch gets renamed to loadProcessos to avoid confusion, update useEffect
-  useEffect(() => {
-    loadProcessos();
-  }, []);
-
   // ... (handleanalyzeClick, extractPdfText, handleFileUpload, handleCreateFromAnalysis, handleViewAnalysis, handleOpenCreate, handleOpenEdit)
 
   // Função Centralizada de Salvar (Cria ou Atualiza) via Service
@@ -204,16 +200,20 @@ ${dados.sugestoes_ia?.join('\n- ') || ''}
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir este processo?')) {
-      try {
-        await deleteProcesso(id);
-        setProcessos(processos.filter(p => p.id !== id));
-        toast.success('Processo excluído.');
-      } catch (error) {
-        console.error('Erro ao excluir:', error);
-        toast.error('Erro ao excluir.');
-      }
+  const handleDelete = (id) => {
+    setConfirmState({ open: true, id });
+  };
+
+  const handleConfirmDelete = async () => {
+    const id = confirmState.id;
+    setConfirmState({ open: false, id: null });
+    try {
+      await deleteProcesso(id);
+      setProcessos(processos.filter(p => p.id !== id));
+      toast.success('Processo excluído.');
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+      toast.error('Erro ao excluir.');
     }
   };
 
@@ -369,6 +369,16 @@ ${dados.sugestoes_ia?.join('\n- ') || ''}
         analysisData={analysisResult}
         fullText={pdfText}
         onCreateProcess={handleCreateFromAnalysis}
+      />
+
+      <ConfirmModal
+        isOpen={confirmState.open}
+        onCancel={() => setConfirmState({ open: false, id: null })}
+        onConfirm={handleConfirmDelete}
+        title="Excluir Processo"
+        message="Esta ação é permanente. O processo e todos os seus dados serão removidos definitivamente."
+        confirmLabel="Sim, excluir"
+        variant="danger"
       />
     </div>
   );

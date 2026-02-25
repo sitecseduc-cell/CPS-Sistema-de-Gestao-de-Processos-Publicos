@@ -52,7 +52,9 @@ describe('Performance Optimizations', () => {
 
     it('fetchProcessos should select only necessary columns', async () => {
         await fetchProcessos();
-        // Implementation uses *
-        expect(mockSelect).toHaveBeenCalledWith('*');
+        // Verifica que colunas específicas são selecionadas (não '*') para melhor performance
+        expect(mockSelect).toHaveBeenCalledWith(
+            'id, nome, inicio, fim, fase_atual, progresso, ai_metadata, created_at'
+        );
     });
 });

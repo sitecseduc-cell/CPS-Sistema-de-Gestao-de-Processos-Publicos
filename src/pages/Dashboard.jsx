@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import noiseSvg from '../assets/noise.svg';
 import {
   Users,
   GitCommit,
@@ -84,7 +85,7 @@ export default function Dashboard() {
         <div className="relative overflow-hidden rounded-3xl p-8 md:p-12 shadow-2xl">
           {/* Animated Background Mesh */}
           <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600"></div>
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
+          <div className="absolute inset-0" style={{ backgroundImage: `url(${noiseSvg})`, opacity: 0.2 }}></div>
 
           {/* Abstract decoration */}
           <div className="absolute -right-20 -top-20 w-96 h-96 bg-fuchsia-500/30 rounded-full blur-3xl animate-float"></div>

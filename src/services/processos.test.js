@@ -64,16 +64,11 @@ describe('Processos Service', () => {
         await fetchProcessos();
 
         expect(mockFrom).toHaveBeenCalledWith('processos');
-        // Match specific columns or strictly what is in code
-        expect(mockSelect).toHaveBeenCalledWith('*');
+        // Verifica colunas específicas (performance: evita select('*'))
+        expect(mockSelect).toHaveBeenCalledWith(
+            'id, nome, inicio, fim, fase_atual, progresso, ai_metadata, created_at'
+        );
         expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false });
-        // mockLimit is local to beforeEach scope? No, I defined it inside beforeEach but not assigned to outer variable?
-        // Wait, 'mockLimit' was defined inside beforeEach. I cannot access it here unless I define it outside.
-        // I need to redefine mockLimit or access it via the chain.
-
-        // Let's rely on the fact that mockOrder returns an object with limit property which is a spy.
-        // But better: define mockLimit outside or just don't check strict spy identity if hard.
-        // Or better yet, just correct the file structure first.
     });
 
     it('createProcesso should insert new process', async () => {

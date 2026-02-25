@@ -20,7 +20,6 @@ const PreAvaliacao = React.lazy(() => import('./pages/PreAvaliacao'));
 const Relatorios = React.lazy(() => import('./pages/Relatorios'));
 const Seguranca = React.lazy(() => import('./pages/Seguranca'));
 
-// --- IMPORTANTE: NOVA PÁGINA ---
 const VagasEspeciais = React.lazy(() => import('./pages/VagasEspeciais'));
 const Planejamento = React.lazy(() => import('./pages/Planejamento'));
 const Lotacao = React.lazy(() => import('./pages/Lotacao'));

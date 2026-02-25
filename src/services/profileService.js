@@ -249,7 +249,15 @@ export const profileService = {
   },
 
   async createUser(userData) {
-    // ⚠️ CRITICAL: Use a separate client instance to avoid logging out the current admin
+    // ⚠️ AVISO DE SEGURANÇA:
+    // Esta função usa um cliente Supabase temporário com ANON_KEY para criar usuários.
+    // Isso é um workaround — a solução ideal é uma Edge Function com SERVICE_ROLE_KEY
+    // para que nenhuma lógica admin rode no lado do cliente.
+    //
+    // TODO: Migrar para Edge Function 'admin-actions' com:
+    //   supabase.functions.invoke('admin-actions', { body: { action: 'createUser', email, name, role } })
+    //
+    // Não logar o objeto userData completo para evitar expor senhas nos logs.
     const tempSupabase = createClient(
       import.meta.env.VITE_SUPABASE_URL,
       import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -261,14 +269,14 @@ export const profileService = {
       options: {
         data: {
           full_name: userData.name,
-          role: userData.role // Trigger will catch this!
+          role: userData.role,
         },
       },
     });
 
     if (authError) throw authError;
 
-    // Optional: Log action (Audit)
+    // Registra no audit log (sem expor senha)
     try {
       await supabase.rpc('log_audit_event', {
         p_operation: 'INSERT',
@@ -277,7 +285,7 @@ export const profileService = {
         p_old_data: null,
         p_new_data: { email: userData.email, role: userData.role }
       });
-    } catch (e) { console.warn("Audit log failed", e); }
+    } catch (e) { console.warn('Audit log failed', e); }
 
     return authData;
   }

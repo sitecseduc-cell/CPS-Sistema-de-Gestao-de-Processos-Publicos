@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 export const fetchProcessos = async ({ signal } = {}) => {
     let query = supabase
         .from('processos')
-        .select('*') // Select all to ensure we get ai_metadata and others
+        .select('id, nome, inicio, fim, fase_atual, progresso, ai_metadata, created_at')
         .order('created_at', { ascending: false });
 
     if (signal) {

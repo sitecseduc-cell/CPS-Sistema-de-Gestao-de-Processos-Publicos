@@ -1,12 +1,18 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ImmersiveLoader from './ImmersiveLoader';
 
 export default function ProtectedRoute({ allowedRoles }) {
   const { user, role, loading } = useAuth();
 
+  // Aguarda o AuthContext resolver antes de tomar qualquer decisão
+  if (loading) {
+    return <ImmersiveLoader />;
+  }
+
   // Se não tem usuário, manda pro login
-  if (!user && !loading) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
