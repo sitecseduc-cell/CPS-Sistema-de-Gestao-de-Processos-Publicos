@@ -97,13 +97,18 @@ export default function ControleVagas() {
         if (!window.confirm('Tem certeza que deseja excluir esta vaga?')) return;
 
         try {
-            const { error } = await supabase.from('controle_vagas').delete().eq('id', id);
+            const { data, error } = await supabase.from('controle_vagas').delete().eq('id', id).select();
             if (error) throw error;
+
+            if (!data || data.length === 0) {
+                throw new Error("A exclusão falhou silenciosamente (possível bloqueio de RLS no Banco de Dados).");
+            }
+
             toast.success('Vaga excluída com sucesso.');
             fetchVagas(); // Recarrega a lista
         } catch (error) {
             console.error(error);
-            toast.error('Erro ao excluir vaga.');
+            toast.error('Erro ao excluir vaga. O banco de dados bloqueou a ação (RLS).');
         }
     };
 
@@ -175,7 +180,19 @@ export default function ControleVagas() {
                     <p className="text-slate-500">Gerencie a ocupação e vacância em toda a rede.</p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-3 w-full md:w-auto">
+                    {/* Search Bar */}
+                    <div className="relative w-full md:w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar vaga, servidor, cargo..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all shadow-sm"
+                        />
+                    </div>
+
                     <button
                         onClick={() => setShowConvocationModal(true)}
                         className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white px-4 py-2.5 rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all active:scale-95"
@@ -215,8 +232,16 @@ export default function ControleVagas() {
                             {vagas.map((v) => (
                                 <tr key={v.id} className="hover:bg-slate-50">
                                     <td className="px-4 py-3">
-                                        <div className="font-bold text-slate-700">{v.servidor || 'VAGA EM ABERTO'}</div>
-                                        <div className="text-xs text-slate-400">Mat: {v.matvin || '-'}</div>
+                                        <div className="font-bold text-slate-700">
+                                            {v.status === 'OCUPADO'
+                                                ? <span className="text-purple-600">👤 {v.atendido_candidato || '(Nome não registrado)'}</span>
+                                                : (v.servidor || 'VAGA EM ABERTO')
+                                            }
+                                        </div>
+                                        <div className="text-xs text-slate-400">
+                                            Mat: {v.matvin || '-'}
+                                            {v.status === 'OCUPADO' && v.servidor ? ` | Ref: ${v.servidor}` : ''}
+                                        </div>
                                     </td>
                                     {visibleColumns.cargo && <td className="px-4 py-3 text-slate-600">{v.cargo_funcao}</td>}
                                     {visibleColumns.municipio && (
