@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 import {
     FileSpreadsheet, FileText, Download, Printer,
     PieChart as PieIcon, Users, Briefcase, Calendar, Loader2
@@ -105,10 +106,54 @@ export default function Relatorios() {
             link.click();
             document.body.removeChild(link);
 
-            toast.success(`Relatório ${filename} exportado com sucesso!`);
+            toast.success(`Relatório CSV (${filename}) exportado com sucesso!`);
         } catch (error) {
             console.error(error);
-            toast.error('Erro ao gerar relatório.');
+            toast.error('Erro ao gerar relatório CSV.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Função genérica para exportar XLSX (Excel rich)
+    const exportXLSX = async (table, filename, columns = '*') => {
+        setLoading(true);
+        try {
+            // No XLS nós pegamos os objetos JSON puros, não a string csv()
+            const { data, error } = await supabase
+                .from(table)
+                .select(columns);
+
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                toast.warning('Nenhum dado encontrado para exportação.');
+                return;
+            }
+
+            // Converter JSON em Worksheet
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            
+            // Criar um Workbook e anexar a Worksheet
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
+
+            // Gerar o buffer binário do arquivo Excel
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            
+            // Criar Blob e forçar o Downlaod
+            const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            toast.success(`Planilha Excel (${filename}) exportada com sucesso!`);
+        } catch (error) {
+            console.error(error);
+            toast.error('Erro ao gerar planilha Excel.');
         } finally {
             setLoading(false);
         }
@@ -237,6 +282,13 @@ export default function Relatorios() {
                             >
                                 <Download size={16} /> CSV
                             </button>
+                            <button
+                                disabled={loading}
+                                onClick={() => exportXLSX('candidatos', 'candidatos_full')}
+                                className="flex-1 py-2 border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Download size={16} /> Excel
+                            </button>
                         </div>
                     </div>
 
@@ -251,13 +303,22 @@ export default function Relatorios() {
                                 <p className="text-xs text-slate-500">Ocupação e vacância atual</p>
                             </div>
                         </div>
-                        <button
-                            disabled={loading}
-                            onClick={() => exportCSV('controle_vagas', 'controle_vagas')}
-                            className="w-full py-2 border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
-                        >
-                            <Download size={16} /> Baixar CSV
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                disabled={loading}
+                                onClick={() => exportCSV('controle_vagas', 'controle_vagas')}
+                                className="flex-1 py-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Download size={16} /> CSV
+                            </button>
+                            <button
+                                disabled={loading}
+                                onClick={() => exportXLSX('controle_vagas', 'controle_vagas')}
+                                className="flex-1 py-2 border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Download size={16} /> Excel
+                            </button>
+                        </div>
                     </div>
 
                     {/* Relatório 3: Processos Seletivos */}
@@ -271,13 +332,22 @@ export default function Relatorios() {
                                 <p className="text-xs text-slate-500">Status de editais e cronogramas</p>
                             </div>
                         </div>
-                        <button
-                            disabled={loading}
-                            onClick={() => exportCSV('processos', 'processos_seletivos')}
-                            className="w-full py-2 border border-purple-200 text-purple-600 rounded-lg hover:bg-purple-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
-                        >
-                            <Download size={16} /> Baixar CSV
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                disabled={loading}
+                                onClick={() => exportCSV('processos', 'processos_seletivos')}
+                                className="flex-1 py-2 border border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Download size={16} /> CSV
+                            </button>
+                            <button
+                                disabled={loading}
+                                onClick={() => exportXLSX('processos', 'processos_seletivos')}
+                                className="flex-1 py-2 border border-emerald-200 text-emerald-600 rounded-lg hover:bg-emerald-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Download size={16} /> Excel
+                            </button>
+                        </div>
                     </div>
 
                 </div>
@@ -299,13 +369,22 @@ export default function Relatorios() {
                                 <p className="text-xs text-slate-500">Histórico de alterações (Audit Trail)</p>
                             </div>
                         </div>
-                        <button
-                            disabled={loading}
-                            onClick={() => exportCSV('audit_logs', 'auditoria_sistema')}
-                            className="w-full py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
-                        >
-                            <Download size={16} /> Exportar Logs
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                disabled={loading}
+                                onClick={() => exportCSV('audit_logs', 'auditoria_sistema')}
+                                className="flex-1 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Download size={16} /> Logs (CSV)
+                            </button>
+                            <button
+                                disabled={loading}
+                                onClick={() => exportXLSX('audit_logs', 'auditoria_sistema')}
+                                className="flex-1 py-2 border border-slate-300 text-slate-700 bg-white rounded-lg hover:bg-slate-50 font-bold text-sm flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Download size={16} /> Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

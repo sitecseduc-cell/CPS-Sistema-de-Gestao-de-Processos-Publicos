@@ -9,6 +9,7 @@ import CandidateTable from '../components/CandidateTable';
 import NewCandidateModal from '../components/NewCandidateModal';
 import { Spinner } from '../components/ui/Loading';
 import { supabase } from '../lib/supabaseClient';
+import { fetchCandidatos } from '../services/candidatos';
 import { toast } from 'sonner';
 
 function useDebounce(value, delay) {
@@ -21,53 +22,60 @@ function useDebounce(value, delay) {
 }
 
 export default function Inscritos() {
-  const [allCandidates, setAllCandidates] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const searchTerm = useDebounce(inputValue, 500);
+  const [statusFilter, setStatusFilter] = useState('');
+
   const [page, setPage] = useState(1);
   const pageSize = 10;
+
   const [filteredData, setFilteredData] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Busca dados paginados/filtrados no backend
   useEffect(() => {
-    const fetchCandidates = async () => {
+    const loadCandidates = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('candidatos')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) {
+      try {
+        const offset = (page - 1) * pageSize;
+        const data = await fetchCandidatos({
+          limit: pageSize,
+          offset,
+          search: searchTerm,
+          status: statusFilter
+        });
+        setFilteredData(data || []);
+
+        // Busca o total count separadamente para a paginação correta (simplificado)
+        let countQuery = supabase.from('candidatos').select('*', { count: 'exact', head: true });
+        if (searchTerm) countQuery = countQuery.or(`nome_completo.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,rg.ilike.%${searchTerm}%`);
+        if (statusFilter) countQuery = countQuery.eq('status', statusFilter);
+
+        const { count } = await countQuery;
+        setTotalCount(count || 0);
+
+      } catch (error) {
         console.error('Erro ao buscar candidatos:', error);
+        toast.error('Erro ao buscar candidatos');
+      } finally {
         setLoading(false);
-        return;
       }
-      if (data) setAllCandidates(data);
-      setLoading(false);
     };
-    fetchCandidates();
-  }, []);
 
-  useEffect(() => {
-    const filtered = allCandidates.filter(c =>
-      c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.cpf.includes(searchTerm) ||
-      c.processo.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setTotalCount(filtered.length);
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    setFilteredData(filtered.slice(start, end));
-  }, [searchTerm, page, allCandidates]);
+    loadCandidates();
+  }, [searchTerm, statusFilter, page]);
 
+  // Reseta a página quando muda a busca ou o filtro
   useEffect(() => {
     setPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, statusFilter]);
 
   const handleAddCandidate = async (newCandidate) => {
     try {
@@ -101,7 +109,10 @@ export default function Inscritos() {
         throw error;
       }
       if (data && data.length > 0) {
-        setAllCandidates([data[0], ...allCandidates]);
+        // Recarrega a página 1 para mostrar o novo candidato no topo
+        setPage(1);
+        setInputValue('');
+        setStatusFilter('');
         toast.success('Candidato cadastrado com sucesso!');
       }
     } catch (e) {
@@ -123,7 +134,7 @@ export default function Inscritos() {
     toast.promise(promise, {
       loading: 'Salvando alterações...',
       success: () => {
-        setAllCandidates(prev => prev.map(c => c.id === editData.id ? editData : c));
+        setFilteredData(prev => prev.map(c => c.id === editData.id ? editData : c));
         setSelectedCandidate(editData);
         setIsSaving(false);
         setIsEditing(false);
@@ -137,7 +148,7 @@ export default function Inscritos() {
     if (window.confirm(`Mudar status para: ${newStatus}?`)) {
       const updated = { ...selectedCandidate, status: newStatus };
       setSelectedCandidate(updated);
-      setAllCandidates(prev => prev.map(c => c.id === updated.id ? updated : c));
+      setFilteredData(prev => prev.map(c => c.id === updated.id ? updated : c));
       toast.success(`Status alterado para ${newStatus}`);
     }
   };
@@ -229,18 +240,33 @@ export default function Inscritos() {
             </p>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
-            <div className="relative w-full md:w-96">
+            <div className="relative w-full md:w-72">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
                 {loading && inputValue !== searchTerm ? <Loader size={20} className="animate-spin text-blue-500" /> : <Search size={20} />}
               </div>
               <input
                 type="text"
-                placeholder="Buscar por Nome, CPF ou Processo..."
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Nome, e-mail, CPF, RG..."
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
               />
             </div>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium cursor-pointer"
+            >
+              <option value="">Status: Todos</option>
+              <option value="Aprovado">Aprovado</option>
+              <option value="Homologado">Homologado</option>
+              <option value="Classificado">Classificado</option>
+              <option value="Em Análise">Em Análise</option>
+              <option value="Com Pendência">Com Pendência</option>
+              <option value="Desclassificado">Desclassificado</option>
+            </select>
+
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all"

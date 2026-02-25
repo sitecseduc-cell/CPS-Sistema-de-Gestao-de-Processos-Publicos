@@ -11,6 +11,16 @@ vi.mock('recharts', async (importOriginal) => {
     };
 });
 
+// Mock xlsx
+vi.mock('xlsx', () => ({
+    utils: {
+        json_to_sheet: vi.fn(),
+        book_new: vi.fn(),
+        book_append_sheet: vi.fn(),
+    },
+    write: vi.fn(() => new ArrayBuffer(8)), // Retorna dummy buffer
+}));
+
 // Mock Supabase
 const mockSelect = vi.fn();
 const mockCsv = vi.fn();
@@ -58,21 +68,34 @@ describe('Relatorios Page', () => {
         expect(screen.getByText('Central de Relatórios')).toBeInTheDocument();
         // Check for specific buttons
         expect(screen.getAllByText(/CSV/i).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/PDF/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/Excel/i).length).toBeGreaterThan(0);
     });
 
     it('triggers CSV export when clicked', async () => {
         render(<Relatorios />);
 
         // Click the first CSV button (Candidatos)
-        const csvButtons = screen.getAllByText('CSV');
+        const csvButtons = screen.getAllByText(/CSV/i);
         fireEvent.click(csvButtons[0]);
 
         await waitFor(() => {
             expect(mockFrom).toHaveBeenCalledWith('candidatos');
-            // Check if toast success appears (optional, or check console)
-            // But main logic is calling supabase
             expect(mockCsv).toHaveBeenCalled();
+        });
+    });
+
+    it('triggers Excel export when clicked', async () => {
+        render(<Relatorios />);
+
+        // Click the first Excel button (Candidatos)
+        const excelButtons = screen.getAllByText(/Excel/i);
+        // Botão na "Base de Candidatos" (primeiro na UI)
+        fireEvent.click(excelButtons[0]);
+
+        await waitFor(() => {
+            expect(mockFrom).toHaveBeenCalledWith('candidatos');
+            // Como mockamos a resposta do .then() do Supabase pra voltar "val", não há crashe e o loading = false.
+            expect(mockSelect).toHaveBeenCalledWith('*');
         });
     });
 });

@@ -4,13 +4,24 @@
 
 import { supabase } from '../lib/supabaseClient';
 
-/** Fetch candidates with optional pagination */
-export const fetchCandidatos = async ({ limit = 500, offset = 0 } = {}) => {
-  const { data, error } = await supabase
+/** Fetch candidates with optional filters and pagination */
+export const fetchCandidatos = async ({ limit = 500, offset = 0, search = '', status = '' } = {}) => {
+  let query = supabase
     .from('candidatos')
     .select('*')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
+
+  if (search) {
+    // Busca em múltiplos campos usando OR (nome_completo, email, cpf, rg)
+    query = query.or(`nome_completo.ilike.%${search}%,email.ilike.%${search}%,cpf.ilike.%${search}%,rg.ilike.%${search}%`);
+  }
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 };

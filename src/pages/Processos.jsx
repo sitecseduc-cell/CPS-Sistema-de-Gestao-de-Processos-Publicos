@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit, FileText, Calendar, Layers, Trash2, Sparkles, Upload } from 'lucide-react';
+import { Plus, Edit, FileText, Calendar, Layers, Trash2, Sparkles, Upload, Search, Loader } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import NewProcessModal from '../components/NewProcessModal';
 import AnalysisModal from '../components/AnalysisModal';
@@ -14,6 +14,15 @@ import { fetchProcessos, createProcesso, updateProcesso, deleteProcesso } from '
 // Configurar worker do PDF.js (usando arquivo na pasta public)
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 export default function Processos() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -27,10 +36,14 @@ export default function Processos() {
   const [pdfText, setPdfText] = useState('');
   const [confirmState, setConfirmState] = useState({ open: false, id: null });
 
-  // Initial Fetch
+  const [inputValue, setInputValue] = useState('');
+  const searchTerm = useDebounce(inputValue, 500);
+  const [faseFilter, setFaseFilter] = useState('');
+
+  // Initial Fetch & Search Updates
   useEffect(() => {
     loadProcessos();
-  }, []);
+  }, [searchTerm, faseFilter]);
 
   const handleanalyzeClick = () => {
     if (fileInputRef.current) {
@@ -140,7 +153,7 @@ ${dados.sugestoes_ia?.join('\n- ') || ''}
   const loadProcessos = async () => {
     setLoading(true);
     try {
-      const data = await fetchProcessos();
+      const data = await fetchProcessos({ search: searchTerm, fase: faseFilter });
       setProcessos(data || []);
     } catch (error) {
       console.error('Erro ao buscar processos:', error);
@@ -234,7 +247,33 @@ ${dados.sugestoes_ia?.join('\n- ') || ''}
           <h2 className="text-2xl font-bold text-slate-800">Gerenciamento dos Processos</h2>
           <p className="text-slate-500 text-sm mt-1">Administre editais e fases de seleção.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-4 md:mt-0 items-center">
+          <div className="relative w-full md:w-64">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+              {loading && inputValue !== searchTerm ? <Loader size={18} className="animate-spin text-blue-500" /> : <Search size={18} />}
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar edital..."
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+            />
+          </div>
+
+          <select
+            value={faseFilter}
+            onChange={(e) => setFaseFilter(e.target.value)}
+            className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">Todas as Fases</option>
+            <option value="Planejamento">Planejamento</option>
+            <option value="Inscrições Abertas">Inscrições</option>
+            <option value="Em Avaliação">Em Avaliação</option>
+            <option value="Finalizado">Finalizado</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+
           <input
             type="file"
             ref={fileInputRef}
@@ -245,16 +284,19 @@ ${dados.sugestoes_ia?.join('\n- ') || ''}
           <button
             onClick={handleanalyzeClick}
             disabled={analyzing}
-            className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-wait"
+            className="flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-wait shrink-0 w-10 h-10 md:w-auto md:h-auto"
+            title="Analisar Edital (IA)"
           >
-            {analyzing ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <Sparkles size={20} />}
-            <span>{analyzing ? 'Analisando...' : 'Analisar Edital (IA)'}</span>
+            {analyzing ? <Loader size={18} className="animate-spin text-white" /> : <Sparkles size={18} />}
+            <span className="hidden md:inline">{analyzing ? 'Analisando...' : 'Analisar Edital'}</span>
           </button>
+
           <button
             onClick={handleOpenCreate}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"
+            className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition-all hover:scale-105 active:scale-95 shrink-0 w-10 h-10 md:w-auto md:h-auto"
+            title="Cadastrar Processo"
           >
-            <Plus size={20} /><span>Cadastrar Processo</span>
+            <Plus size={18} /><span className="hidden md:inline">Novo Processo</span>
           </button>
         </div>
       </div>

@@ -70,13 +70,14 @@ describe('Processos Page', () => {
         );
 
         expect(screen.getByText('Gerenciamento dos Processos')).toBeInTheDocument();
-        expect(screen.getByText('Cadastrar Processo')).toBeInTheDocument();
+        // O botão agora tem texto diferente dependendo do breakpoint, procuramos pelo span
+        expect(screen.getByText('Novo Processo')).toBeInTheDocument();
     });
 
     it('renders list of processes after fetch', async () => {
         const mockData = [
             { id: 1, nome: 'Processo Seletivo 2025', inicio: '2025-01-01', fim: '2025-02-01', fase_atual: 'Planejamento', progresso: 10 },
-            { id: 2, nome: 'Concurso 2026', inicio: '2026-03-01', fim: '2026-04-01', fase_atual: 'Publicado', progresso: 50 }
+            { id: 2, nome: 'Concurso 2026', inicio: '2026-03-01', fim: '2026-04-01', fase_atual: 'Inscrições Abertas', progresso: 50 }
         ];
 
         processosService.fetchProcessos.mockResolvedValue(mockData);
@@ -87,13 +88,12 @@ describe('Processos Page', () => {
             </BrowserRouter>
         );
 
-        await waitFor(() => {
-            expect(screen.getByText('Processo Seletivo 2025')).toBeInTheDocument();
-            expect(screen.getByText('Concurso 2026')).toBeInTheDocument();
-        });
+        // findByText instead of waitFor + getByText helps waiting for loaders to vanish 
+        expect(await screen.findByText('Processo Seletivo 2025', {}, { timeout: 3000 })).toBeInTheDocument();
+        expect(screen.getByText('Concurso 2026')).toBeInTheDocument();
 
         // Check status badges
         expect(screen.getByText('Planejamento')).toBeInTheDocument();
-        expect(screen.getByText('Publicado')).toBeInTheDocument();
+        expect(screen.getByText('Inscrições Abertas')).toBeInTheDocument();
     });
 });
