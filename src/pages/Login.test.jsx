@@ -5,7 +5,23 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
 import Login from './Login';
 
-// Mock the AuthContext module
+// Mock do Supabase para evitar chamadas reais
+vi.mock('../lib/supabaseClient', () => ({
+    supabase: {
+        from: vi.fn(() => ({ select: vi.fn().mockResolvedValue({ data: [], error: null }) })),
+        auth: { signInWithPassword: vi.fn(), signUp: vi.fn() },
+        functions: { invoke: vi.fn() },
+        channel: vi.fn(() => ({ on: vi.fn().mockReturnThis(), subscribe: vi.fn() })),
+        removeChannel: vi.fn(),
+    },
+}));
+
+// Mock do ImmersiveLoader (evita animações pesadas no JSDOM)
+vi.mock('../components/ImmersiveLoader', () => ({
+    default: () => <div data-testid="immersive-loader">Loading...</div>,
+}));
+
+// Mock do AuthContext
 const mocks = vi.hoisted(() => {
     return {
         signIn: vi.fn((...args) => console.log('MOCK SIGNIN CALLED:', args)),
@@ -36,12 +52,12 @@ describe('Login Page', () => {
         vi.clearAllMocks();
     });
 
-    test('renders login form by default', () => {
+    test('renders login form by default', async () => {
         renderLogin();
-        expect(screen.getByText('Bem-vindo de volta')).toBeInTheDocument();
+        expect(await screen.findByText('Bem-vindo de volta', {}, { timeout: 5000 })).toBeInTheDocument();
         expect(screen.getByPlaceholderText('nome@exemplo.com')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /acessar/i })).toBeInTheDocument();
-    });
+    }, 15000);
 
     test('validates incorrect email', async () => {
         const user = userEvent.setup();

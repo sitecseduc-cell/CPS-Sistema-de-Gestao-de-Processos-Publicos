@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
-import { createClient } from '@supabase/supabase-js';
+
 
 export const profileService = {
 
@@ -249,44 +249,40 @@ export const profileService = {
   },
 
   async createUser(userData) {
-    // ⚠️ AVISO DE SEGURANÇA:
-    // Esta função usa um cliente Supabase temporário com ANON_KEY para criar usuários.
-    // Isso é um workaround — a solução ideal é uma Edge Function com SERVICE_ROLE_KEY
-    // para que nenhuma lógica admin rode no lado do cliente.
-    //
-    // TODO: Migrar para Edge Function 'admin-actions' com:
-    //   supabase.functions.invoke('admin-actions', { body: { action: 'createUser', email, name, role } })
-    //
-    // Não logar o objeto userData completo para evitar expor senhas nos logs.
-    const tempSupabase = createClient(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY
-    );
-
-    const { data: authData, error: authError } = await tempSupabase.auth.signUp({
-      email: userData.email,
-      password: userData.password,
-      options: {
-        data: {
-          full_name: userData.name,
+    // ✅ SEGURO: Usa Edge Function 'admin-actions' com SERVICE_ROLE_KEY no servidor.
+    // A senha nunca fica exposta no cliente, e apenas admins autenticados podem chamar esta função.
+    // A Edge Function valida o JWT do chamador antes de executar qualquer ação.
+    const { data, error } = await supabase.functions.invoke('admin-actions', {
+      body: {
+        action: 'createUser',
+        payload: {
+          email: userData.email,
+          password: userData.password,
+          name: userData.name,
           role: userData.role,
         },
       },
     });
 
-    if (authError) throw authError;
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
 
-    // Registra no audit log (sem expor senha)
-    try {
-      await supabase.rpc('log_audit_event', {
-        p_operation: 'INSERT',
-        p_table_name: 'profiles',
-        p_record_id: authData.user?.id || null,
-        p_old_data: null,
-        p_new_data: { email: userData.email, role: userData.role }
-      });
-    } catch (e) { console.warn('Audit log failed', e); }
+    return data;
+  },
 
-    return authData;
-  }
+  async deleteUser(userId) {
+    // ✅ SEGURO: Usa Edge Function 'admin-actions' com SERVICE_ROLE_KEY no servidor.
+    const { data, error } = await supabase.functions.invoke('admin-actions', {
+      body: {
+        action: 'deleteUser',
+        payload: { userId },
+      },
+    });
+
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+
+    return data;
+  },
 };
+
