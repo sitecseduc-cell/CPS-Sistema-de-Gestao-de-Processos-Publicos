@@ -10,22 +10,10 @@ const COLORS = ['#6366f1', '#8b5cf6', '#d946ef', '#10b981'];
 
 export default function DashboardVisual({ stats, funnelData }) {
 
-    // Mock data for Areas (Hiring trend)
-    const trendData = [
-        { name: 'Jan', convocados: 40 },
-        { name: 'Fev', convocados: 30 },
-        { name: 'Mar', convocados: 20 },
-        { name: 'Abr', convocados: 27 },
-        { name: 'Mai', convocados: 18 },
-        { name: 'Jun', convocados: 23 },
-        { name: 'Jul', convocados: 34 },
-    ];
-
-    // Data for Pie Chart (Occupancy)
-    // Assuming we have total spots vs filled. using mock if mostly empty
+    // Data for Pie Chart usando dados reais do Supabase
     const occupancyData = [
-        { name: 'Preenchidas', value: stats.vagasPreenchidas || 342, color: '#10b981' },
-        { name: 'Livres', value: (stats.candidatos > 0 ? Math.floor(stats.candidatos * 0.2) : 120), color: '#e2e8f0' },
+        { name: 'Preenchidas', value: stats.vagasPreenchidas || 0, color: '#10b981' },
+        { name: 'Livres', value: stats.vagasLivres || 0, color: '#e2e8f0' },
     ];
 
     return (
@@ -114,7 +102,7 @@ export default function DashboardVisual({ stats, funnelData }) {
                     </div>
                 </div>
 
-                {/* Tendência (Area) */}
+                {/* Tendência - será integrado com dados históricos reais futuramente */}
                 <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-6 shadow-xl">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -122,19 +110,8 @@ export default function DashboardVisual({ stats, funnelData }) {
                             Ritmo de Contratação
                         </h3>
                     </div>
-                    <div style={{ width: '100%', height: 150 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={trendData}>
-                                <defs>
-                                    <linearGradient id="colorConvocados" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none' }} />
-                                <Area type="monotone" dataKey="convocados" stroke="#3b82f6" fillOpacity={1} fill="url(#colorConvocados)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="h-[150px] flex items-center justify-center text-slate-400 text-sm">
+                        Histórico de convocações indisponível no momento.
                     </div>
                 </div>
 

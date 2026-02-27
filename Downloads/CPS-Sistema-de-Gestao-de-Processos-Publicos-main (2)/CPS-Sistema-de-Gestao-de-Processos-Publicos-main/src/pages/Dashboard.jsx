@@ -52,20 +52,13 @@ export default function Dashboard() {
         ]);
 
       } catch (e) {
-        console.warn('Backend unavailable or RPC missing. Using mock data for Dashboard.');
-        // Mock Data for "Visão Geral"
-        setStats({
-          candidatos: 1250,
-          processos: 8,
-          vagasPreenchidas: 342,
-          atrasos: 3
-        });
-
+        console.error('Erro ao buscar dados do Dashboard:', e);
+        setStats({ candidatos: 0, processos: 0, vagasPreenchidas: 0, atrasos: 0 });
         setFunnelData([
-          { label: 'Inscritos Totais', count: 1250, color: '#6366f1' },
-          { label: 'Em Análise', count: 850, color: '#8b5cf6' },
-          { label: 'Classificados', count: 500, color: '#d946ef' },
-          { label: 'Convocados', count: 342, color: '#10b981' }
+          { label: 'Inscritos Totais', count: 0, color: '#6366f1' },
+          { label: 'Em Análise', count: 0, color: '#8b5cf6' },
+          { label: 'Classificados', count: 0, color: '#d946ef' },
+          { label: 'Convocados', count: 0, color: '#10b981' }
         ]);
       } finally {
         setLoading(false);
