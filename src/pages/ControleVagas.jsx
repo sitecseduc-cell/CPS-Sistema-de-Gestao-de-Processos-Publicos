@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
 import NewVacancyModal from '../components/NewVacancyModal';
 import SmartConvocationModal from '../components/SmartConvocationModal';
+import { mockControleVagas } from '../demo/demoData';
 
 export default function ControleVagas() {
     const [showConvocationModal, setShowConvocationModal] = useState(false);
@@ -52,6 +53,38 @@ export default function ControleVagas() {
 
     const fetchVagas = async () => {
         setLoading(true);
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') {
+            setTimeout(() => {
+                let filtered = [...mockControleVagas];
+
+                if (searchTerm) {
+                    const term = searchTerm.toLowerCase();
+                    filtered = filtered.filter(v =>
+                        (v.servidor && v.servidor.toLowerCase().includes(term)) ||
+                        (v.matvin && v.matvin.toLowerCase().includes(term)) ||
+                        (v.cargo_funcao && v.cargo_funcao.toLowerCase().includes(term))
+                    );
+                }
+
+                if (activeFilters.status) {
+                    filtered = filtered.filter(v => v.status === activeFilters.status);
+                }
+                if (activeFilters.secretaria) {
+                    const sec = activeFilters.secretaria.toLowerCase();
+                    filtered = filtered.filter(v => v.secretaria_pertencente && v.secretaria_pertencente.toLowerCase().includes(sec));
+                }
+
+                setTotalItems(filtered.length);
+
+                const from = (page - 1) * itemsPerPage;
+                const to = from + itemsPerPage;
+
+                setVagas(filtered.slice(from, to).sort((a, b) => (a.servidor || '').localeCompare(b.servidor || '')));
+                setLoading(false);
+            }, 500);
+            return;
+        }
+
         try {
             let query = supabase
                 .from('controle_vagas')
@@ -95,6 +128,11 @@ export default function ControleVagas() {
 
     const handleDeleteVacancy = async (id) => {
         if (!window.confirm('Tem certeza que deseja excluir esta vaga?')) return;
+
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') {
+            toast.success('Vaga excluída com sucesso (Simulação).');
+            return;
+        }
 
         try {
             const { data, error } = await supabase.from('controle_vagas').delete().eq('id', id).select();

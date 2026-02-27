@@ -10,6 +10,7 @@ import {
     PieChart, Pie, Cell
 } from 'recharts';
 import TableSkeleton from '../components/TableSkeleton';
+import { demoCandidatos } from '../demo/demoData';
 
 export default function Relatorios() {
     const [loading, setLoading] = useState(false);
@@ -23,11 +24,20 @@ export default function Relatorios() {
 
     const fetchChartData = async () => {
         setLoadingCharts(true);
+
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') {
+            setTimeout(() => {
+                processStats(demoCandidatos);
+                setLoadingCharts(false);
+            }, 500);
+            return;
+        }
+
         try {
             // Buscando dados reais para os gráficos
             const { data, error } = await supabase
                 .from('candidatos')
-                .select('cargo, status');
+                .select('vaga, status');
 
             if (error) throw error;
 
@@ -37,57 +47,69 @@ export default function Relatorios() {
                 return;
             }
 
-            // 1. Processar Cargos (Top 5)
-            const cargoCount = {};
-            data.forEach(item => {
-                const cargo = item.cargo || 'Não Informado';
-                cargoCount[cargo] = (cargoCount[cargo] || 0) + 1;
-            });
-
-            // Converter para array e ordenar
-            const sortedCargos = Object.entries(cargoCount)
-                .map(([name, inscritos]) => ({ name, inscritos }))
-                .sort((a, b) => b.inscritos - a.inscritos)
-                .slice(0, 5); // Top 5
-
-            setChartData(sortedCargos);
-
-            // 2. Processar Status
-            const statusCount = {};
-            data.forEach(item => {
-                const status = item.status || 'Indefinido';
-                statusCount[status] = (statusCount[status] || 0) + 1;
-            });
-
-            const COLORS = {
-                'Aprovado': '#10B981',      // Emerald
-                'Homologado': '#059669',    // Dark Emerald
-                'Classificado': '#3B82F6',  // Blue
-                'Em Análise': '#F59E0B',    // Amber
-                'Com Pendência': '#F97316', // Orange
-                'Desclassificado': '#EF4444', // Red
-                'Indefinido': '#94A3B8'     // Slate
-            };
-
-            const processedStatus = Object.entries(statusCount).map(([name, value]) => ({
-                name,
-                value,
-                color: COLORS[name] || '#64748B' // Fallback color
-            }));
-
-            setStatusData(processedStatus);
-
+            processStats(data);
         } catch (error) {
             console.error('Erro ao carregar dados dos gráficos:', error);
             // toast.error('Erro ao atualizar gráficos.'); // Silencioso para não spammar
         } finally {
-            setLoadingCharts(false);
+            if (import.meta.env.VITE_USE_MOCK_DATA !== 'true' && sessionStorage.getItem('cps_demo_mode') !== 'true') {
+                setLoadingCharts(false);
+            }
         }
     };
 
-    // Função genérica para exportar CSV
+    const processStats = (data) => {
+        // 1. Processar Cargos (Top 5)
+        const cargoCount = {};
+        data.forEach(item => {
+            const cargo = item.cargo || item.vaga || 'Não Informado';
+            cargoCount[cargo] = (cargoCount[cargo] || 0) + 1;
+        });
+
+        // Converter para array e ordenar
+        const sortedCargos = Object.entries(cargoCount)
+            .map(([name, inscritos]) => ({ name, inscritos }))
+            .sort((a, b) => b.inscritos - a.inscritos)
+            .slice(0, 5); // Top 5
+
+        setChartData(sortedCargos);
+
+        // 2. Processar Status
+        const statusCount = {};
+        data.forEach(item => {
+            const status = item.status || 'Indefinido';
+            statusCount[status] = (statusCount[status] || 0) + 1;
+        });
+
+        const COLORS = {
+            'Aprovado': '#10B981',      // Emerald
+            'Homologado': '#059669',    // Dark Emerald
+            'Classificado': '#3B82F6',  // Blue
+            'Em Análise': '#F59E0B',    // Amber
+            'Com Pendência': '#F97316', // Orange
+            'Desclassificado': '#EF4444', // Red
+            'Indefinido': '#94A3B8'     // Slate
+        };
+
+        const processedStatus = Object.entries(statusCount).map(([name, value]) => ({
+            name,
+            value,
+            color: COLORS[name] || '#64748B' // Fallback color
+        }));
+
+        setStatusData(processedStatus);
+    };
+
     const exportCSV = async (table, filename, columns = '*') => {
         setLoading(true);
+
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') {
+            setTimeout(() => {
+                toast.success(`Relatório ${filename} simulado com sucesso!`);
+                setLoading(false);
+            }, 800);
+            return;
+        }
         try {
             const { data, error } = await supabase
                 .from(table)

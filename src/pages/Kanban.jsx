@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom';
 import { Loader, Plus, Layers } from 'lucide-react';
 import NewProcessModal from '../components/NewProcessModal';
 import { toast } from 'sonner';
+import { useDemo } from '../contexts/DemoContext';
 
 // --- CONFIGURAÇÃO KANBAN CANDIDATOS ---
 const CANDIDATE_COLUMNS = {
@@ -58,22 +59,26 @@ const PROCESS_REVERSE_MAP = {
 
 export default function Kanban() {
   const location = useLocation();
-
-  // Se existir processId no state, estamos no modo "Candidatos de um Processo"
-  // Caso contrário, estamos no modo "Fluxo de Processos" (Visão Geral)
   const processId = location.state?.processId;
   const processName = location.state?.processName || 'Todos os Processos';
-
   const isProcessMode = !processId;
 
-  // State genérico para colunas (Candidatos ou Processos)
   const [columns, setColumns] = useState(isProcessMode ? PROCESS_COLUMNS_KEYS : CANDIDATE_COLUMNS);
   const [activeId, setActiveId] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Modal de Criação/Edição de Processo
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+
+  const {
+    isDemoMode,
+    processos: demoProcs,
+    candidatos: demoCands,
+    demoAddProcesso,
+    demoUpdateProcesso,
+    demoUpdateCandidatoStatus,
+    demoDeleteProcesso,
+    demoDeleteCandidato,
+  } = useDemo();
 
   useEffect(() => {
     if (isProcessMode) {
@@ -81,12 +86,20 @@ export default function Kanban() {
     } else {
       fetchCandidates();
     }
-  }, [processId, isProcessMode]);
+  }, [processId, isProcessMode, isDemoMode, demoProcs, demoCands]);
 
   // --- FETCH PROCESSOS ---
   const fetchProcessos = async () => {
     try {
       setLoading(true);
+
+      // Modo Demo
+      if (isDemoMode) {
+        organizeProcessColumns(demoProcs);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('processos')
         .select('*')
@@ -126,6 +139,17 @@ export default function Kanban() {
   const fetchCandidates = async () => {
     try {
       setLoading(true);
+
+      // Modo Demo
+      if (isDemoMode) {
+        const filtered = processName && processName !== 'Todos os Processos'
+          ? demoCands.filter(c => c.processo?.toLowerCase().includes(processName.toLowerCase()))
+          : demoCands;
+        organizeCandidateColumns(filtered);
+        setLoading(false);
+        return;
+      }
+
       let query = supabase.from('candidatos').select('*').order('created_at', { ascending: false });
 
       if (processName && processName !== 'Todos os Processos') {
@@ -232,17 +256,25 @@ export default function Kanban() {
   const handleDeleteItem = async (item) => {
     if (!window.confirm(`Tem certeza que deseja excluir "${item.title}"?`)) return;
 
+    // Modo Demo
+    if (isDemoMode) {
+      if (isProcessMode) demoDeleteProcesso(item.id);
+      else demoDeleteCandidato(item.id);
+      toast.success(`${isProcessMode ? 'Processo' : 'Candidato'} excluído (demo).`);
+      return;
+    }
+
     try {
       if (isProcessMode) {
         const { error } = await supabase.from('processos').delete().eq('id', item.id);
         if (error) throw error;
         toast.success('Processo excluído com sucesso.');
-        fetchProcessos(); // Refresh list
+        fetchProcessos();
       } else {
         const { error } = await supabase.from('candidatos').delete().eq('id', item.id);
         if (error) throw error;
         toast.success('Candidato excluído com sucesso.');
-        fetchCandidates(); // Refresh list
+        fetchCandidates();
       }
     } catch (error) {
       console.error('Erro ao excluir item:', error);
@@ -251,9 +283,22 @@ export default function Kanban() {
   };
 
   const handleSaveProcess = async (formData) => {
+    // Modo Demo
+    if (isDemoMode) {
+      if (editingItem) {
+        demoUpdateProcesso(editingItem.id, { nome: formData.nome, descricao: formData.descricao, inicio: formData.inicio, fim: formData.fim });
+        toast.success('Processo atualizado (demo)!');
+      } else {
+        demoAddProcesso({ nome: formData.nome, descricao: formData.descricao, inicio: formData.inicio || null, fim: formData.fim || null });
+        toast.success('Processo criado (demo)!');
+      }
+      setIsModalOpen(false);
+      setEditingItem(null);
+      return;
+    }
+
     try {
       if (editingItem) {
-        // UPDATE
         const { error } = await supabase
           .from('processos')
           .update({
@@ -267,7 +312,6 @@ export default function Kanban() {
         if (error) throw error;
         toast.success('Processo atualizado!');
       } else {
-        // CREATE
         const payload = {
           nome: formData.nome,
           descricao: formData.descricao,
@@ -284,7 +328,7 @@ export default function Kanban() {
 
       setIsModalOpen(false);
       setEditingItem(null);
-      fetchProcessos(); // Recarrega Kanban
+      fetchProcessos();
 
     } catch (error) {
       console.error('Erro ao salvar processo:', error);

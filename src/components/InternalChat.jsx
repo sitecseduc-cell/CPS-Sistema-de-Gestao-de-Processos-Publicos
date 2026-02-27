@@ -50,7 +50,7 @@ export default function InternalChat() {
             fetchMessages();
             // Sub
             const channel = subscribeToMessages();
-            return () => { supabase.removeChannel(channel); };
+            return () => { if (channel) supabase.removeChannel(channel); };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, activeTab, selectedUser]); // Keeping existing behavior but suppressing warning as logic requires specific triggers
@@ -66,6 +66,11 @@ export default function InternalChat() {
 
     // ... (Keep fetch functions, but improved) ...
     const fetchUsers = async () => {
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') {
+            setUsersList([{ id: 'mock-user-1', full_name: 'Usuário Homologação', email: 'homologacao@sitec.com', role: 'admin' }]);
+            return;
+        }
+
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
@@ -77,6 +82,20 @@ export default function InternalChat() {
     };
 
     const fetchMessages = async () => {
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') {
+            setMessages([
+                {
+                    id: 'welcome-msg',
+                    content: 'Bem-vindo ao chat do ambiente de homologação! As mensagens aqui não são salvas no banco de dados.',
+                    created_at: new Date().toISOString(),
+                    sender_id: 'system',
+                    receiver_id: null,
+                    sender: { full_name: 'Sistema', avatar_url: null }
+                }
+            ]);
+            return;
+        }
+
         try {
             let query = supabase
                 .from('chat_messages')
@@ -104,6 +123,8 @@ export default function InternalChat() {
     };
 
     const subscribeToMessages = () => {
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') return null;
+
         const channel = supabase
             .channel('public:chat_messages')
             .on('postgres_changes',
@@ -134,6 +155,20 @@ export default function InternalChat() {
         if (!newMessage.trim() || !user) return;
         const text = newMessage.trim();
         setNewMessage('');
+
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true' || sessionStorage.getItem('cps_demo_mode') === 'true') {
+            const mockMsg = {
+                id: Date.now().toString(),
+                content: text,
+                created_at: new Date().toISOString(),
+                sender_id: user.id,
+                receiver_id: activeTab === 'direct_chat' ? selectedUser?.id : null,
+                sender: { full_name: user.full_name || 'Usuário Atual' }
+            };
+            setMessages(prev => [...prev, mockMsg]);
+            return;
+        }
+
         try {
             await supabase.from('chat_messages').insert({
                 content: text,

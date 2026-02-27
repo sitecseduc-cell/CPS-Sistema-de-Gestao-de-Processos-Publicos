@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Save, MapPin, School, Briefcase, Hash, Building2, AlertCircle, Layers } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import { planejamentoService } from '../services/planejamentoService';
 import { toast } from 'sonner';
 
 export default function PlanningVacancyModal({ isOpen, onClose, onSuccess, initialData }) {
@@ -38,29 +38,23 @@ export default function PlanningVacancyModal({ isOpen, onClose, onSuccess, initi
         try {
             if (initialData?.id) {
                 // Update
-                const { error } = await supabase.from('vagas')
-                    .update({
-                        municipio: formData.municipio,
-                        dre: formData.dre,
-                        escola: formData.escola,
-                        cargo: formData.cargo,
-                        qtd: formData.qtd
-                    })
-                    .eq('id', initialData.id);
-                if (error) throw error;
+                await planejamentoService.updateVaga(initialData.id, {
+                    municipio: formData.municipio,
+                    dre: formData.dre,
+                    escola: formData.escola,
+                    cargo: formData.cargo,
+                    qtd: formData.qtd
+                });
                 toast.success("Vaga de planejamento atualizada!");
             } else {
                 // Insert
-                const { error } = await supabase.from('vagas').insert([
-                    {
-                        municipio: formData.municipio,
-                        dre: formData.dre,
-                        escola: formData.escola,
-                        cargo: formData.cargo,
-                        qtd: formData.qtd
-                    }
-                ]);
-                if (error) throw error;
+                await planejamentoService.createVaga({
+                    municipio: formData.municipio,
+                    dre: formData.dre,
+                    escola: formData.escola,
+                    cargo: formData.cargo,
+                    qtd: formData.qtd
+                });
                 toast.success("Nova vaga planejada criada!");
             }
 

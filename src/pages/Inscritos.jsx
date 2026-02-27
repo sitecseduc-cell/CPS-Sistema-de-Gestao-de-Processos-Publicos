@@ -10,6 +10,7 @@ import NewCandidateModal from '../components/NewCandidateModal';
 import { Spinner } from '../components/ui/Loading';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'sonner';
+import { useDemo } from '../contexts/DemoContext';
 
 function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -35,9 +36,26 @@ export default function Inscritos() {
   const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const {
+    isDemoMode,
+    candidatos: demoCands,
+    demoAddCandidato,
+    demoUpdateCandidato,
+    demoUpdateCandidatoStatus,
+    demoDeleteCandidato
+  } = useDemo();
+
   useEffect(() => {
     const fetchCandidates = async () => {
       setLoading(true);
+
+      // Modo Demo
+      if (isDemoMode) {
+        setAllCandidates(demoCands);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('candidatos')
         .select('*')
@@ -51,7 +69,7 @@ export default function Inscritos() {
       setLoading(false);
     };
     fetchCandidates();
-  }, []);
+  }, [isDemoMode, demoCands]);
 
   useEffect(() => {
     const filtered = allCandidates.filter(c =>
@@ -72,8 +90,6 @@ export default function Inscritos() {
   const handleAddCandidate = async (newCandidate) => {
     try {
       const { vaga, cpf, telefone, ...restCandidate } = newCandidate;
-
-      // Clean masks
       const cleanCpf = cpf.replace(/\D/g, '');
       const cleanPhone = telefone ? telefone.replace(/\D/g, '') : '';
 
@@ -84,12 +100,15 @@ export default function Inscritos() {
         vaga: vaga,
         processo: newCandidate.processo || 'Novo Processo Manual',
         localidade: 'A Definir',
-        status: 'EM ANÁLISE', // Standardized uppercase
-        // perfil: 'Manual',
-        // pontuacao: 0.0,
-        // documentos: [],
-        // historico: [{ data: new Date().toLocaleDateString('pt-BR'), evento: 'Cadastro Manual', usuario: 'Admin' }]
+        status: 'EM ANÁLISE',
       };
+
+      // Modo Demo: inserir em memória
+      if (isDemoMode) {
+        demoAddCandidato(candidateToInsert);
+        toast.success('Candidato cadastrado (modo demo)!');
+        return;
+      }
 
       const { data, error } = await supabase
         .from('candidatos')
@@ -106,7 +125,6 @@ export default function Inscritos() {
       }
     } catch (e) {
       console.error(e);
-      // Show actual error to help debugging schema issues
       toast.error(`Erro: ${e.message || e.details || 'Falha ao cadastrar'}`);
     }
   };
@@ -119,15 +137,18 @@ export default function Inscritos() {
 
   const handleSave = () => {
     setIsSaving(true);
-    const promise = new Promise((resolve) => setTimeout(resolve, 1000));
+    const promise = new Promise((resolve) => setTimeout(resolve, 800));
     toast.promise(promise, {
       loading: 'Salvando alterações...',
       success: () => {
+        if (isDemoMode) {
+          demoUpdateCandidato(editData.id, editData);
+        }
         setAllCandidates(prev => prev.map(c => c.id === editData.id ? editData : c));
         setSelectedCandidate(editData);
         setIsSaving(false);
         setIsEditing(false);
-        return `Dados de ${editData.nome} salvos!`;
+        return `Dados de ${editData.nome} salvos${isDemoMode ? ' (demo)' : ''}!`;
       },
       error: 'Erro ao salvar.'
     });
@@ -137,8 +158,9 @@ export default function Inscritos() {
     if (window.confirm(`Mudar status para: ${newStatus}?`)) {
       const updated = { ...selectedCandidate, status: newStatus };
       setSelectedCandidate(updated);
+      if (isDemoMode) demoUpdateCandidatoStatus(selectedCandidate.id, newStatus);
       setAllCandidates(prev => prev.map(c => c.id === updated.id ? updated : c));
-      toast.success(`Status alterado para ${newStatus}`);
+      toast.success(`Status alterado para ${newStatus}${isDemoMode ? ' (demo)' : ''}`);
     }
   };
 

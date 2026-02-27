@@ -9,6 +9,7 @@ import bandeiraPara from '../assets/bandeira_para.png';
 import AiChatbot from './AiChatbot';
 import InternalChat from './InternalChat';
 import AuditDetailsModal from './AuditDetailsModal';
+import DemoBanner from './DemoBanner';
 
 
 import {
@@ -280,6 +281,7 @@ export default function Layout() {
 
       {/* --- CONTENT AREA --- */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <DemoBanner />
 
         {/* Glass Header */}
         <header className="mx-4 mt-[2vh] mb-4 h-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-3xl flex justify-between items-center px-8 z-40 transition-all">

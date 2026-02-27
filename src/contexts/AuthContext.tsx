@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect, useContext, useRef, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useDemo } from './DemoContext';
+import { DEMO_CREDENTIALS } from '../demo/demoData';
 
 import { User } from '@supabase/supabase-js';
 import ImmersiveLoader from '../components/ImmersiveLoader';
@@ -34,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null); // <--- Storing profile/role
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const demoCtx = useDemo() as any;
 
   const fetchingUserId = useRef<string | null>(null); // <--- Ref to track in-progress fetches
 
@@ -179,6 +182,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    // Interceptar credenciais de homologação
+    if (email === DEMO_CREDENTIALS.email && password === DEMO_CREDENTIALS.password) {
+      demoCtx.enterDemoMode();
+      return { user: demoCtx.demoUser };
+    }
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -211,6 +219,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      if (demoCtx.isDemoMode) {
+        demoCtx.exitDemoMode();
+        return;
+      }
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
@@ -219,12 +231,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Computed roles
-  const role = profile?.role || 'servidor'; // Default to 'servidor' if undefined
+  // Computed roles — no modo demo, usar perfil demo
+  const effectiveUser = demoCtx.isDemoMode ? (demoCtx.demoUser as unknown as User) : user;
+  const effectiveProfile = demoCtx.isDemoMode ? demoCtx.demoProfile : profile;
+  const role = effectiveProfile?.role || 'servidor';
   const isAdmin = role === 'admin';
   const isManager = role === 'gestor' || role === 'admin';
 
-  if (loading) {
+  if (loading && !demoCtx.isDemoMode) {
     return <ImmersiveLoader />;
   }
 
@@ -236,8 +250,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{
-      user,
-      profile,
+      user: effectiveUser,
+      profile: effectiveProfile,
       role,
       isAdmin,
       isManager,

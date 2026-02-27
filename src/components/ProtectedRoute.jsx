@@ -1,9 +1,14 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useDemo } from '../contexts/DemoContext';
 
 export default function ProtectedRoute({ allowedRoles }) {
   const { user, role, loading } = useAuth();
+  const { isDemoMode } = useDemo();
+
+  // Modo demo: sempre passa
+  if (isDemoMode) return <Outlet />;
 
   // Se não tem usuário, manda pro login
   if (!user && !loading) {

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Lock, Mail, User, AlertCircle, ArrowRight, ArrowLeft, Loader2, Hexagon } from 'lucide-react';
+import { Lock, Mail, User, AlertCircle, ArrowRight, ArrowLeft, Loader2, Hexagon, FlaskConical } from 'lucide-react';
 import ImmersiveLoader from '../components/ImmersiveLoader';
+import { DEMO_CREDENTIALS } from '../demo/demoData';
 
 // --- VALIDATION AND FORMS ---
 import { useForm } from 'react-hook-form';
@@ -45,11 +46,17 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
     reset,
-    clearErrors
+    clearErrors,
+    setValue
   } = useForm({
     resolver: zodResolver(currentSchema),
     mode: 'onSubmit'
   });
+
+  const fillDemoCredentials = () => {
+    setValue('email', DEMO_CREDENTIALS.email);
+    setValue('password', DEMO_CREDENTIALS.password);
+  };
 
   const changeView = (newView) => {
     setView(newView);
@@ -229,6 +236,37 @@ export default function Login() {
           </button>
         </form>
 
+
+        {/* Demo/Homologação Access */}
+        {view === 'login' && (
+          <div className="mt-6 pt-5 border-t border-amber-200/60 dark:border-amber-800/30">
+            <div className="bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-amber-400 p-1 rounded-md">
+                  <FlaskConical size={14} className="text-white" />
+                </span>
+                <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                  Acesso de Homologação
+                </p>
+              </div>
+              <p className="text-xs text-amber-600 dark:text-amber-500 mb-3">
+                Ambiente de revisão técnica com dados fictícios.
+              </p>
+              <div className="text-xs font-mono bg-white/70 dark:bg-black/20 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-300 mb-3 space-y-1">
+                <div><span className="text-slate-400">e-mail: </span>{DEMO_CREDENTIALS.email}</div>
+                <div><span className="text-slate-400">senha: </span>{DEMO_CREDENTIALS.password}</div>
+              </div>
+              <button
+                type="button"
+                onClick={fillDemoCredentials}
+                className="w-full py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+              >
+                <FlaskConical size={13} />
+                Preencher Credenciais Demo
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Footer Navigation */}
         <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/10 text-center space-y-4">

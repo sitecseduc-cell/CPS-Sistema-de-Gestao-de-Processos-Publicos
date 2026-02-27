@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 import { AuthProvider } from './contexts/AuthContext';
+import { DemoProvider } from './contexts/DemoContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const Layout = React.lazy(() => import('./components/Layout'));
@@ -37,56 +38,58 @@ import ImmersiveLoader from './components/ImmersiveLoader';
 export default function App() {
     return (
         <TryBoundary>
-            <NetworkStatus />
-            <BrowserRouter>
-                <AuthProvider>
-                    <React.Suspense fallback={
-                        <ImmersiveLoader />
-                    }>
-                        <Routes>
+            <DemoProvider>
+                <NetworkStatus />
+                <BrowserRouter>
+                    <AuthProvider>
+                        <React.Suspense fallback={
+                            <ImmersiveLoader />
+                        }>
+                            <Routes>
 
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/consulta-publica" element={<PublicCandidateSearch />} />
-                            <Route path="/update-password" element={<UpdatePassword />} />
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/consulta-publica" element={<PublicCandidateSearch />} />
+                                <Route path="/update-password" element={<UpdatePassword />} />
 
-                            <Route element={<ProtectedRoute />}>
-                                <Route path="/" element={<Layout />}>
-                                    <Route index element={<Dashboard />} />
-                                    <Route path="planejamento" element={<Planejamento />} />
-                                    <Route path="processos" element={<Processos />} />
-                                    <Route path="lotacao" element={<Lotacao />} />
-                                    <Route path="vagas" element={<ControleVagas />} />
-                                    <Route path="inscritos" element={<Inscritos />} />
+                                <Route element={<ProtectedRoute />}>
+                                    <Route path="/" element={<Layout />}>
+                                        <Route index element={<Dashboard />} />
+                                        <Route path="planejamento" element={<Planejamento />} />
+                                        <Route path="processos" element={<Processos />} />
+                                        <Route path="lotacao" element={<Lotacao />} />
+                                        <Route path="vagas" element={<ControleVagas />} />
+                                        <Route path="inscritos" element={<Inscritos />} />
 
-                                    {/* --- NOVA ROTA DE VAGAS ESPECIAIS --- */}
-                                    <Route path="vagas-especiais" element={<VagasEspeciais />} />
-                                    <Route path="notificacoes" element={<Notifications />} />
+                                        {/* --- NOVA ROTA DE VAGAS ESPECIAIS --- */}
+                                        <Route path="vagas-especiais" element={<VagasEspeciais />} />
+                                        <Route path="notificacoes" element={<Notifications />} />
 
-                                    <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                                        <Route path="admin/perfis" element={<AdminPerfis />} />
+                                        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                                            <Route path="admin/perfis" element={<AdminPerfis />} />
+                                        </Route>
+                                        {/* ------------------------------------ */}
+
+                                        <Route path="pesquisa" element={<PesquisaCandidatos />} />
+                                        <Route path="qtd" element={<QuantidadeInscritos />} />
+                                        <Route path="pre" element={<PreAvaliacao />} />
+
+                                        <Route path="workflow" element={<Kanban />} />
+                                        <Route path="auditoria" element={<Auditoria />} />
+                                        <Route path="relatorios" element={<Relatorios />} />
+                                        <Route path="seguranca" element={<Seguranca />} />
+
+                                        <Route path="*" element={<NotFound />} />
                                     </Route>
-                                    {/* ------------------------------------ */}
-
-                                    <Route path="pesquisa" element={<PesquisaCandidatos />} />
-                                    <Route path="qtd" element={<QuantidadeInscritos />} />
-                                    <Route path="pre" element={<PreAvaliacao />} />
-
-                                    <Route path="workflow" element={<Kanban />} />
-                                    <Route path="auditoria" element={<Auditoria />} />
-                                    <Route path="relatorios" element={<Relatorios />} />
-                                    <Route path="seguranca" element={<Seguranca />} />
-
-                                    <Route path="*" element={<NotFound />} />
                                 </Route>
-                            </Route>
 
-                            <Route path="*" element={<Navigate to="/login" replace />} />
+                                <Route path="*" element={<Navigate to="/login" replace />} />
 
-                        </Routes>
-                        <Toaster richColors position="top-right" />
-                    </React.Suspense>
-                </AuthProvider>
-            </BrowserRouter>
+                            </Routes>
+                            <Toaster richColors position="top-right" />
+                        </React.Suspense>
+                    </AuthProvider>
+                </BrowserRouter>
+            </DemoProvider>
         </TryBoundary>
     );
 }

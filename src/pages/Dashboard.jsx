@@ -18,6 +18,7 @@ import CardSkeleton from '../components/CardSkeleton';
 import HeroSkeleton from '../components/HeroSkeleton';
 import ChartSkeleton from '../components/ChartSkeleton';
 import OnboardingTour from '../components/OnboardingTour';
+import { useDemo } from '../contexts/DemoContext';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -28,11 +29,21 @@ export default function Dashboard() {
     atrasos: 0
   });
   const [funnelData, setFunnelData] = useState([]);
+  const { isDemoMode, stats: demoStatsData, funnelData: demoFunnelDataValues } = useDemo();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+
+        // Modo Demo: usar dados fictícios
+        if (isDemoMode) {
+          setStats(demoStatsData);
+          setFunnelData(demoFunnelDataValues);
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.rpc('get_dashboard_stats');
 
         if (error) throw error;
@@ -45,10 +56,10 @@ export default function Dashboard() {
         });
 
         setFunnelData([
-          { label: 'Inscritos Totais', count: data.total_candidatos, color: '#6366f1' }, // Indigo 500
-          { label: 'Em Análise', count: data.em_analise, color: '#8b5cf6' }, // Violet 500
-          { label: 'Classificados', count: data.classificados, color: '#d946ef' }, // Fuchsia 500
-          { label: 'Convocados', count: data.convocados, color: '#10b981' } // Emerald 500
+          { label: 'Inscritos Totais', count: data.total_candidatos, color: '#6366f1' },
+          { label: 'Em Análise', count: data.em_analise, color: '#8b5cf6' },
+          { label: 'Classificados', count: data.classificados, color: '#d946ef' },
+          { label: 'Convocados', count: data.convocados, color: '#10b981' }
         ]);
 
       } catch (e) {
@@ -65,7 +76,7 @@ export default function Dashboard() {
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [isDemoMode]);
 
   return (
     <div className="space-y-8 animate-fadeIn pb-10">
