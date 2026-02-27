@@ -58,3 +58,12 @@ next-env.d.ts
 
 # Data files (Safety)
 *.csv
+
+# Test scripts (local debug only)
+test_*.js
+check_*.js
+delete_*.js
+
+# Local dev tool files
+.gemini/
+.antigravity/

@@ -254,7 +254,7 @@ export default function Layout() {
 
           <SidebarGroup title="Gestão">
             <SidebarItem icon={Briefcase} label="Controle de Vagas" to="/vagas" />
-            <SidebarItem icon={Star} label="Vagas Especiais" to="/vagas-especiais" />
+            <SidebarItem icon={Star} label="Convocação Especial" to="/vagas-especiais" />
           </SidebarGroup>
 
           <SidebarGroup title="Ferramentas">
