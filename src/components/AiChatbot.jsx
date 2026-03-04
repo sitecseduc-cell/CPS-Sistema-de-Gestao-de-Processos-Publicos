@@ -3,7 +3,7 @@ import { MessageSquare, X, Send, Bot, User, Loader } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { GeminiService } from '../services/GeminiService';
 
-export default function AiChatbot() {
+export default function AiChatbot({ stacked = false }) {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         { id: 1, sender: 'bot', text: 'Olá! Sou o Assistente Inteligente do CPS, agora com acesso total aos dados do sistema. Pergunte sobre processos, vagas, candidatos ou auditoria!' }
@@ -93,8 +93,12 @@ export default function AiChatbot() {
         }
     };
 
+    const wrapper = stacked
+        ? 'flex flex-col items-end pointer-events-none'
+        : 'fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none';
+
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+        <div className={wrapper}>
 
             {/* Janela do Chat */}
             {isOpen && (

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 
-export default function InternalChat() {
+export default function InternalChat({ stacked = false }) {
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('global');
@@ -214,8 +214,12 @@ export default function InternalChat() {
 
     if (!user) return null;
 
+    const wrapper = stacked
+        ? 'flex flex-col items-end pointer-events-none'
+        : 'fixed bottom-6 right-28 z-[60] flex flex-col items-end pointer-events-none font-sans';
+
     return (
-        <div className="fixed bottom-6 right-28 z-[60] flex flex-col items-end pointer-events-none font-sans">
+        <div className={wrapper}>
             {isOpen && (
                 <div className="mb-4 bg-white dark:bg-slate-800 w-80 md:w-96 h-[550px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden pointer-events-auto animate-fadeIn flex flex-col transform transition-all">
 

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Hexagon } from 'lucide-react';
 
 const MESSAGES = [
-    "Sincronizando threads assíncronas...",
-    "Otimizando queries do banco de dados...",
-    "Estabelecendo handshake seguro (TLS)...",
-    "Compilando assets em tempo real...",
-    "Verificando integridade de checksums...",
-    "Hidratando árvore de componentes...",
-    "Indexando metadados do sistema...",
-    "Inicializando protocolos de rede..."
+    "Carregando dados dos processos seletivos...",
+    "Verificando permissões de acesso...",
+    "Atualizando informações de vagas...",
+    "Sincronizando dados com o servidor...",
+    "Preparando o painel de gestão...",
+    "Carregando registros de candidatos...",
+    "Conectando ao banco de dados governamental...",
+    "Quase pronto — aguarde um momento..."
 ];
 
 export default function ImmersiveLoader() {

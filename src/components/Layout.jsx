@@ -10,6 +10,7 @@ import AiChatbot from './AiChatbot';
 import InternalChat from './InternalChat';
 import AuditDetailsModal from './AuditDetailsModal';
 import DemoBanner from './DemoBanner';
+import NetworkStatus from './NetworkStatus';
 
 
 import {
@@ -249,7 +250,8 @@ export default function Layout() {
             <SidebarItem icon={BookOpen} label="Planejamento" to="/planejamento" />
             <SidebarItem icon={Layers} label="Processos" to="/processos" />
             <SidebarItem icon={Users} label="Inscritos" to="/inscritos" />
-            <SidebarItem icon={KanbanSquare} label="Convocação" to="/workflow" />
+            <SidebarItem icon={KanbanSquare} label="Fluxo do PSS" to="/workflow" />
+            <SidebarItem icon={FileSpreadsheet} label="Convocação" to="/convocacao" />
             <SidebarItem icon={Map} label="Lotação" to="/lotacao" />
           </SidebarGroup>
 
@@ -296,7 +298,10 @@ export default function Layout() {
 
           <div className="flex items-center space-x-4 md:space-x-6">
 
-
+            {/* Network Quality Indicator */}
+            <div className="hidden sm:block">
+              <NetworkStatus />
+            </div>
 
             {/* User Profile Pill */}
             <div className="hidden md:flex items-center gap-3 pl-1 pr-4 py-1.5 bg-white/60 dark:bg-black/20 rounded-full border border-white/50 dark:border-white/10 shadow-sm backdrop-blur-sm cursor-default hover:bg-white/80 transition-colors">
@@ -397,9 +402,11 @@ export default function Layout() {
         </div>
       </main>
 
-      <div id="chatbot-trigger">
-        <InternalChat />
-        <AiChatbot />
+      {/* Floating Action Buttons — empilhados verticalmente, canto inferior direito */
+      /* UI/UX: chat da equipe (mais usado) fica abaixo, IA fica acima */}
+      <div className="fixed bottom-6 right-6 z-[60] flex flex-col-reverse items-end gap-3 pointer-events-none">
+        <InternalChat stacked />
+        <AiChatbot stacked />
       </div>
 
       <AuditDetailsModal

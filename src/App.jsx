@@ -12,6 +12,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Processos = React.lazy(() => import('./pages/Processos'));
 const Inscritos = React.lazy(() => import('./pages/Inscritos'));
 const Kanban = React.lazy(() => import('./pages/Kanban'));
+const Convocacao = React.lazy(() => import('./pages/Convocacao'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 const ControleVagas = React.lazy(() => import('./pages/ControleVagas'));
 const Auditoria = React.lazy(() => import('./pages/Auditoria'));
@@ -31,7 +32,6 @@ const Notifications = React.lazy(() => import('./pages/Notifications'));
 const PublicCandidateSearch = React.lazy(() => import('./pages/PublicCandidateSearch'));
 
 import TryBoundary from './components/TryBoundary';
-import NetworkStatus from './components/NetworkStatus';
 import ImmersiveLoader from './components/ImmersiveLoader';
 
 
@@ -39,7 +39,6 @@ export default function App() {
     return (
         <TryBoundary>
             <DemoProvider>
-                <NetworkStatus />
                 <BrowserRouter>
                     <AuthProvider>
                         <React.Suspense fallback={
@@ -59,6 +58,7 @@ export default function App() {
                                         <Route path="lotacao" element={<Lotacao />} />
                                         <Route path="vagas" element={<ControleVagas />} />
                                         <Route path="inscritos" element={<Inscritos />} />
+                                        <Route path="convocacao" element={<Convocacao />} />
 
                                         {/* --- NOVA ROTA DE VAGAS ESPECIAIS --- */}
                                         <Route path="vagas-especiais" element={<VagasEspeciais />} />
