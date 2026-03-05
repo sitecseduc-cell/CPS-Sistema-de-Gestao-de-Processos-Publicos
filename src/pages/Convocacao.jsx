@@ -129,16 +129,11 @@ function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
     const r = summary;
     const [pesquisa, setPesquisa] = useState('');
 
-    // Memoiza a lista ranqueada de escolas
     const rankingEscolas = useMemo(() => {
         if (!escolas || escolas.length === 0) return [];
 
         return escolas.map(esc => {
-            // Pontuação Simples baseada na Localidade (já processada no parse, mas reforçada aqui para UI)
-            // Se possui 'Rural' = Prioridade 1
-            // Se possui Interior = Prioridade 2
-            // Grandes Metrópoles (Belém, etc) seriam excluídas no parse, mas se por acaso aparecerem, é Nível 3.
-            let nivel = 2; // Default Interior
+            let nivel = esc.nivel || 2;
             let statusTexto = 'Prioridade Alta (Interior)';
             let corBadge = 'bg-amber-100 text-amber-700 border-amber-200';
             let icone = <Target size={14} className="text-amber-500" />;
@@ -149,7 +144,11 @@ function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
             const excluidas = ['belém', 'belem', 'ananindeua', 'santarém', 'santarem', 'marabá', 'maraba', 'abaetetuba', 'barcarena', 'benevides'];
             const isExcluida = excluidas.some(ex => mun === ex);
 
-            if (isExcluida) {
+            if (esc.status_alocacao === 'Sem vagas (Corte)') {
+                statusTexto = 'Sem vagas (Corte por Limite)';
+                corBadge = 'bg-red-100 text-red-700 border-red-200';
+                icone = <XCircle size={14} className="text-red-500" />;
+            } else if (isExcluida) {
                 nivel = 3;
                 statusTexto = 'Não Prioritário (Metrópole)';
                 corBadge = 'bg-slate-100 text-slate-500 border-slate-200';
@@ -159,8 +158,6 @@ function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
                 statusTexto = 'Prioridade Máxima (Zona Rural)';
                 corBadge = 'bg-emerald-100 text-emerald-700 border-emerald-200';
                 icone = <Trophy size={14} className="text-emerald-500" />;
-            } else {
-                // Interior Urbano (Nível 2)
             }
 
             return {
@@ -169,12 +166,10 @@ function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
                 statusTexto,
                 corBadge,
                 icone,
-                psicologos: esc.psicologos_alocados || (esc.porte === 'Grande Porte' ? 1 : 'Compartilhado (1/3)')
+                psicologos_display: esc.psicologos_display !== undefined ? esc.psicologos_display : (esc.porte === 'Grande Porte' ? 1 : 'Compartilhado (1/3)')
             };
         }).sort((a, b) => {
-            // Primeiro ordena por Nível (1, 2, 3)
             if (a.nivel !== b.nivel) return a.nivel - b.nivel;
-            // Depois por número de alunos (maior para menor)
             return (b.total_alunos || 0) - (a.total_alunos || 0);
         });
     }, [escolas]);
@@ -312,12 +307,9 @@ function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
                                     </div>
 
                                     <div className="flex flex-col items-end gap-2.5 shrink-0 sm:w-auto w-full sm:mt-0 mt-3 pt-4 sm:pt-0 border-t sm:border-0 border-slate-100">
-                                        <div className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 ${esc.corBadge}`}>
-                                            {esc.icone} {esc.statusTexto}
-                                        </div>
-                                        <div className="text-sm font-black text-indigo-700 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 flex items-center gap-2 w-full sm:w-auto justify-center shadow-sm">
-                                            <Users size={16} className="text-indigo-500" />
-                                            Psicólogos destinados: {esc.psicologos}
+                                        <div className={`text-sm font-black px-4 py-2 rounded-xl border flex items-center gap-2 w-full sm:w-auto justify-center shadow-sm ${esc.psicologos_display === 0 ? 'text-red-700 bg-red-50 border-red-100' : 'text-indigo-700 bg-indigo-50 border-indigo-100'}`}>
+                                            <Users size={16} className={esc.psicologos_display === 0 ? 'text-red-500' : 'text-indigo-500'} />
+                                            Psicólogos destinados: {esc.psicologos_display}
                                         </div>
                                     </div>
                                 </div>
@@ -424,32 +416,95 @@ function PsicologoConvocacao({ onBack }) {
 
                 setEtlEscolas(processado);
 
-                // Cálculo das regras ativas
-                const q = (p) => processado.filter(e => e.porte === p).length;
-                const totalPequeno = q('Pequeno Porte');
-                const totalMedio = q('Médio Porte (Tipo A)') + q('Médio Porte (Tipo B)');
+                // 1) Classificar os níveis para a distribuição
+                processado.forEach(e => {
+                    const area = (e.area_localizacao || '').toLowerCase();
+                    const mun = (e.municipio || '').toLowerCase();
+                    const excluidas = ['belém', 'belem', 'ananindeua', 'santarém', 'santarem', 'marabá', 'maraba', 'abaetetuba', 'barcarena', 'benevides'];
 
+                    if (excluidas.some(ex => mun === ex)) {
+                        e.nivel = 3;
+                    } else if (area.includes('rural')) {
+                        e.nivel = 1;
+                    } else {
+                        e.nivel = 2;
+                    }
+                });
+
+                // Ordenação: Nivel (1->3), depois por alunos (maior->menor)
+                processado.sort((a, b) => {
+                    if (a.nivel !== b.nivel) return a.nivel - b.nivel;
+                    return b.total_alunos - a.total_alunos;
+                });
+
+                // 2) Distribuição de vagas baseada no Limite
+                let vagasRestantes = regra?.total_vagas_disponivel || 200;
                 const regraP = regra?.psic_por_escolas_pequenas || 3;
-                const nPeqMedio = Math.ceil((totalPequeno + totalMedio) / regraP);
+                const psicPorAlunosGrande = regra?.psic_por_alunos_grande || 1000;
 
                 let nGrandeFixo = 0;
-                const psicPorAlunosGrande = regra?.psic_por_alunos_grande || 1000;
-                processado.filter(e => e.porte === 'Grande Porte').forEach(e => {
-                    const psi = Math.ceil(e.total_alunos / psicPorAlunosGrande);
-                    nGrandeFixo += psi;
-                    e.psicologos_alocados = psi;
+                let nPeqMedio = 0;
+                let contPeqMedio = 0;
+
+                processado.forEach(e => {
+                    if (e.porte === 'Grande Porte') {
+                        if (vagasRestantes <= 0) {
+                            e.status_alocacao = 'Sem vagas (Corte)';
+                            e.psicologos_display = 0;
+                            e.psicologos_alocados = 0;
+                            return;
+                        }
+                        const psi = Math.ceil(e.total_alunos / psicPorAlunosGrande);
+                        if (vagasRestantes >= psi) {
+                            e.psicologos_alocados = psi;
+                            e.psicologos_display = psi;
+                            nGrandeFixo += psi;
+                            vagasRestantes -= psi;
+                            e.status_alocacao = 'Alocado';
+                        } else {
+                            e.psicologos_alocados = vagasRestantes;
+                            e.psicologos_display = vagasRestantes;
+                            nGrandeFixo += vagasRestantes;
+                            vagasRestantes = 0;
+                            e.status_alocacao = 'Alocação Parcial';
+                        }
+                    } else {
+                        // Pequeno e Médio Porte
+                        if (contPeqMedio === 0) {
+                            if (vagasRestantes > 0) {
+                                vagasRestantes -= 1;
+                                nPeqMedio += 1;
+                                contPeqMedio = 1;
+                                e.psicologos_display = `Compartilhado (1/${regraP})`;
+                                e.psicologos_alocados = 1 / regraP;
+                                e.status_alocacao = 'Alocado';
+                            } else {
+                                e.status_alocacao = 'Sem vagas (Corte)';
+                                e.psicologos_display = 0;
+                                e.psicologos_alocados = 0;
+                            }
+                        } else {
+                            contPeqMedio++;
+                            e.psicologos_display = `Compartilhado (1/${regraP})`;
+                            e.psicologos_alocados = 1 / regraP;
+                            e.status_alocacao = 'Alocado';
+                            if (contPeqMedio >= regraP) contPeqMedio = 0;
+                        }
+                    }
                 });
+
+                const q = (p) => processado.filter(e => e.porte === p).length;
 
                 setEtlSummary({
                     totalEscolas: processado.length,
                     totalAlunos: processado.reduce((s, e) => s + e.total_alunos, 0),
-                    qPequeno: totalPequeno,
+                    qPequeno: q('Pequeno Porte'),
                     qMedioA: q('Médio Porte (Tipo A)'),
                     qMedioB: q('Médio Porte (Tipo B)'),
                     qGrande: q('Grande Porte'),
-                    nPequeno: Math.ceil(totalPequeno / regraP),
-                    nMedioA: 0,
-                    nMedioB: Math.ceil(totalMedio / regraP),
+                    nPequeno: 0,
+                    nMedioA: nPeqMedio, // Usando nMedioA para guardar o total agrupado por simplicidade na UI
+                    nMedioB: 0,
                     nGrande: nGrandeFixo,
                     demandaFinal: nPeqMedio + nGrandeFixo
                 });

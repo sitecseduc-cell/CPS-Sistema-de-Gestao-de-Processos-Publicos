@@ -223,9 +223,10 @@ export default function Layout() {
             <SidebarItem icon={Map} label="Lotação" to="/lotacao" />
           </SidebarGroup>
 
-          <SidebarGroup title="Gestão">
+          <SidebarGroup title="Gestão de Convocações Especiais">
             <SidebarItem icon={Briefcase} label="Controle de Vagas" to="/vagas" />
-            <SidebarItem icon={Star} label="Convocação Especial" to="/vagas-especiais" />
+            <SidebarItem icon={Star} label="Editais de convocação especial" to="/convocacoes-especiais" />
+            <SidebarItem icon={Layers} label="Análise de Convocações Especiais CSV" to="/vagas-especiais" />
           </SidebarGroup>
 
           <SidebarGroup title="Ferramentas">

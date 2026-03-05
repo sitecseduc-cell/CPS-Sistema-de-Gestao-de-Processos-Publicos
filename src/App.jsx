@@ -22,8 +22,9 @@ const PreAvaliacao = React.lazy(() => import('./pages/PreAvaliacao'));
 const Relatorios = React.lazy(() => import('./pages/Relatorios'));
 const Seguranca = React.lazy(() => import('./pages/Seguranca'));
 
-// --- IMPORTANTE: NOVA PÁGINA ---
+// --- IMPORTANTES ROTAS DE CONVOCAÇÃO ---
 const VagasEspeciais = React.lazy(() => import('./pages/VagasEspeciais'));
+const GestaoConvocacaoEspecial = React.lazy(() => import('./pages/GestaoConvocacaoEspecial'));
 const Planejamento = React.lazy(() => import('./pages/Planejamento'));
 const Lotacao = React.lazy(() => import('./pages/Lotacao'));
 const UpdatePassword = React.lazy(() => import('./pages/UpdatePassword'));
@@ -60,8 +61,9 @@ export default function App() {
                                         <Route path="inscritos" element={<Inscritos />} />
                                         <Route path="convocacao" element={<Convocacao />} />
 
-                                        {/* --- NOVA ROTA DE VAGAS ESPECIAIS --- */}
+                                        {/* --- ROTAS DE VAGAS/CONVOCAÇÕES --- */}
                                         <Route path="vagas-especiais" element={<VagasEspeciais />} />
+                                        <Route path="convocacoes-especiais" element={<GestaoConvocacaoEspecial />} />
                                         <Route path="notificacoes" element={<Notifications />} />
 
                                         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>

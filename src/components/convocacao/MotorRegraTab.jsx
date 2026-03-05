@@ -39,7 +39,21 @@ function calcDemandPreview(regra) {
     const nPeqMedio = Math.ceil(escolasPequenoMedio / (regra.psic_por_escolas_pequenas || 3));
     const nGrande = Math.ceil(alunosGrandePorte / (regra.psic_por_alunos_grande || 1000));
 
-    return { nPeqMedio, nGrande, total: nPeqMedio + nGrande };
+    const demandaBruta = nPeqMedio + nGrande;
+    const vagas = regra.total_vagas_disponivel || 200;
+
+    let total = demandaBruta;
+    let nFixo = nGrande;
+    let nComp = nPeqMedio;
+
+    if (total > vagas) {
+        total = vagas;
+        const pctGrande = nGrande / demandaBruta;
+        nFixo = Math.floor(vagas * pctGrande);
+        nComp = vagas - nFixo;
+    }
+
+    return { nPeqMedio: nComp, nGrande: nFixo, total, demandaBruta };
 }
 
 export default function MotorRegraTab({ onRegraChanged }) {
@@ -155,23 +169,26 @@ export default function MotorRegraTab({ onRegraChanged }) {
                 </div>
             </div>
 
-            {/* Barra meta */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-4">
                 <div className="shrink-0 p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><Settings size={20} /></div>
                 <div className="flex-1">
                     <div className="flex justify-between text-xs font-bold text-slate-500 mb-1.5">
-                        <span>Demanda estimada vs. vagas disponíveis ({vagas})</span>
-                        <span>{Math.min(100, Math.round((preview.total / vagas) * 100))}%</span>
+                        <span>Demanda bruta estimada ({preview.demandaBruta}) vs. limite do edital ({vagas})</span>
+                        <span>{Math.min(100, Math.round((preview.demandaBruta / vagas) * 100))}% ocupado</span>
                     </div>
                     <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full transition-all duration-500 ${preview.total > vagas ? 'bg-red-500' : 'bg-gradient-to-r from-indigo-500 to-emerald-500'}`} style={{ width: `${Math.min(100, (preview.total / vagas) * 100)}%` }} />
+                        <div className={`h-full rounded-full transition-all duration-500 ${preview.demandaBruta > vagas ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-indigo-500 to-emerald-500'}`} style={{ width: `${Math.min(100, (preview.demandaBruta / vagas) * 100)}%` }} />
                     </div>
                 </div>
-                {preview.total > vagas && (
-                    <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-xl"><AlertTriangle size={13} />Excede {preview.total - vagas} vagas</div>
+                {preview.demandaBruta > vagas && (
+                    <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+                        <CheckCircle size={13} />Cortado para o limite exato ({vagas})
+                    </div>
                 )}
-                {preview.total <= vagas && (
-                    <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl"><CheckCircle size={13} />Dentro do limite</div>
+                {preview.demandaBruta <= vagas && (
+                    <div className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl">
+                        <CheckCircle size={13} />Livre para todas (Sem Sobras)
+                    </div>
                 )}
             </div>
 

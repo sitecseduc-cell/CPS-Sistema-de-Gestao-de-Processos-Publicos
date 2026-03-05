@@ -7,7 +7,11 @@ import { toast } from 'sonner';
 export default function PublicCandidateSearch() {
     const [cpf, setCpf] = useState('');
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState(null);
+
+    // Resultados
+    const [resultPss, setResultPss] = useState(null);
+    const [resultConv, setResultConv] = useState([]);
+
     const [searched, setSearched] = useState(false);
 
     const handleSearch = async (e) => {
@@ -18,31 +22,34 @@ export default function PublicCandidateSearch() {
         }
 
         setLoading(true);
-        setResult(null);
+        setResultPss(null);
+        setResultConv([]);
         setSearched(false);
 
         try {
-            // Remove non-numeric characters just in case
             const cleanCpf = cpf.replace(/\D/g, '');
 
-            // Try to match exact CPF or formatted
-            // Note: In a real prod env, we should have a 'cpf' column relative to the candidate
-            // Here, assuming we search in 'candidatos' table. 
-            // We usually check 'cpf' column.
-
-            const { data, error } = await supabase
+            // 1. Busca no PSS Base
+            const { data: dataPss } = await supabase
                 .from('candidatos')
                 .select('*')
-                .ilike('cpf', `%${cleanCpf}%`) // Flexible search
+                .ilike('cpf', `%${cleanCpf}%`)
                 .limit(1);
 
-            if (error) throw error;
+            // 2. Busca nas Convocações Especiais
+            const { data: dataConv } = await supabase
+                .from('inscricoes_convocacao')
+                .select('*, convocacoes_especiais(titulo)')
+                .eq('candidato_cpf', cleanCpf)
+                .order('created_at', { ascending: false });
 
-            if (data && data.length > 0) {
-                setResult(data[0]);
-            } else {
-                setResult(null);
+            if (dataPss && dataPss.length > 0) {
+                setResultPss(dataPss[0]);
             }
+            if (dataConv && dataConv.length > 0) {
+                setResultConv(dataConv);
+            }
+
             setSearched(true);
         } catch (error) {
             console.error(error);
@@ -53,15 +60,31 @@ export default function PublicCandidateSearch() {
     };
 
     const getStatusColor = (status) => {
+        if (!status) return 'bg-slate-100 text-slate-700 border-slate-200';
         switch (String(status).toLowerCase()) {
-            case 'aprovado': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+            case 'aprovado':
+            case 'convocado': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
             case 'classificado': return 'bg-blue-100 text-blue-700 border-blue-200';
             case 'em análise':
-            case 'em analise': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+            case 'em analise':
+            case 'em_analise': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
             case 'cadastro reserva': return 'bg-amber-100 text-amber-700 border-amber-200';
-            case 'reprovado': return 'bg-red-100 text-red-700 border-red-200';
+            case 'reprovado':
+            case 'desclassificado': return 'bg-red-100 text-red-700 border-red-200';
+            case 'inscrito': return 'bg-sky-100 text-sky-700 border-sky-200';
             default: return 'bg-slate-100 text-slate-700 border-slate-200';
         }
+    };
+
+    const getStatusLabel = (status) => {
+        if (!status) return 'Em Análise';
+        const labels = {
+            'em_analise': 'Em Análise Técnica',
+            'desclassificado': 'Desclassificado',
+            'convocado': 'Convocado',
+            'inscrito': 'Inscrição Confirmada'
+        };
+        return labels[status.toLowerCase()] || status;
     };
 
     return (
@@ -138,54 +161,85 @@ export default function PublicCandidateSearch() {
                             </div>
                         </div>
 
-                        {result ? (
-                            <div className="mt-6 bg-white/40 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group shadow-inner">
-                                <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-xl text-xs font-bold border-b border-l uppercase tracking-wider ${getStatusColor(result.status)}`}>
-                                    {result.status || 'Em Análise'}
-                                </div>
-
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className="w-12 h-12 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-600 text-2xl shadow-sm">
-                                        👤
+                        {/* 1. RESULTADO PSS BASE */}
+                        <div className="mb-4">
+                            <h3 className="text-slate-500 font-bold uppercase text-[11px] tracking-wider mb-2 text-center">Processo Seletivo Base</h3>
+                            {resultPss ? (
+                                <div className="bg-white/40 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group shadow-inner">
+                                    <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-xl text-xs font-bold border-b border-l uppercase tracking-wider ${getStatusColor(resultPss.status)}`}>
+                                        {resultPss.status || 'Em Análise'}
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-800 dark:text-white text-lg">{result.nome}</h3>
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-1.5">
-                                            <MapPin size={14} /> {result.municipio} / {result.dre}
+
+                                    <div className="flex items-start gap-4 mb-4">
+                                        <div className="w-12 h-12 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-600 shadow-sm shrink-0">
+                                            <span className="text-2xl">👤</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-800 dark:text-white text-lg">{resultPss.nome}</h3>
+                                            <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-1.5">
+                                                <MapPin size={14} /> {resultPss.municipio} / {resultPss.dre}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
+                                            <span className="text-sm text-slate-500 dark:text-slate-400">Cargo PSS</span>
+                                            <span className="font-semibold text-slate-700 dark:text-slate-200">{resultPss.cargo || resultPss.vaga}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
+                                            <span className="text-sm text-slate-500 dark:text-slate-400">Nota Final PSS</span>
+                                            <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg flex items-center gap-1">
+                                                <Award size={16} /> {resultPss.pontuacao || '0.0'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
+                                        <p className="text-xs text-center text-slate-400">
+                                            Última atualização: {new Date(resultPss.created_at || Date.now()).toLocaleDateString()}
                                         </p>
                                     </div>
                                 </div>
+                            ) : (
+                                <div className="text-center py-6 bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 text-sm text-slate-500 font-bold">
+                                    Não encontrado na base original do PSS.
+                                </div>
+                            )}
+                        </div>
 
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
-                                        <span className="text-sm text-slate-500 dark:text-slate-400">Cargo</span>
-                                        <span className="font-semibold text-slate-700 dark:text-slate-200">{result.cargo || result.vaga}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
-                                        <span className="text-sm text-slate-500 dark:text-slate-400">Nota Final</span>
-                                        <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg flex items-center gap-1">
-                                            <Award size={16} /> {result.pontuacao || '0.0'}
-                                        </span>
-                                    </div>
-                                </div>
+                        {/* 2. RESULTADOS CONVOCAÇÕES ESPECIAIS */}
+                        <div className="mt-8">
+                            <h3 className="text-slate-500 font-bold uppercase text-[11px] tracking-wider mb-2 text-center text-emerald-600/70">Linha do Tempo - Convocações Especiais</h3>
 
-                                <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
-                                    <p className="text-xs text-center text-slate-400">
-                                        Última atualização: {new Date(result.created_at || Date.now()).toLocaleDateString()}
-                                    </p>
+                            {resultConv.length > 0 ? (
+                                <div className="space-y-4">
+                                    {resultConv.map((conv, idx) => (
+                                        <div key={conv.id} className="bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl p-5 relative shadow-sm">
+                                            <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(conv.status_inscricao)}`}>
+                                                {getStatusLabel(conv.status_inscricao)}
+                                            </div>
+
+                                            <div className="pr-24">
+                                                <h4 className="font-bold text-slate-800 dark:text-emerald-400 text-sm mb-1">{conv.convocacoes_especiais?.titulo || 'Edital Desconhecido'}</h4>
+                                                <p className="text-xs text-slate-500 flex items-center gap-1"><AlertCircle size={12} /> Inscrito em: {new Date(conv.created_at).toLocaleDateString()}</p>
+                                            </div>
+
+                                            {conv.observacao_gestor && (
+                                                <div className="mt-4 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                    <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1 mb-1"><ShieldCheck size={12} /> Parecer da Gestão</span>
+                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">"{conv.observacao_gestor}"</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="mt-6 text-center py-6 bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
-                                <div className="inline-flex p-3 bg-white dark:bg-slate-800 rounded-full text-slate-400 mb-3 shadow-sm border border-slate-100 dark:border-slate-700">
-                                    <AlertCircle size={24} />
+                            ) : (
+                                <div className="text-center py-6 bg-emerald-50/30 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100/50 dark:border-emerald-800/30 text-xs text-emerald-600/70 font-bold">
+                                    Você não realizou nenhuma Inscrição Especial.
                                 </div>
-                                <h3 className="text-slate-800 dark:text-white font-bold">Nenhum registro encontrado</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-                                    Verifique se o CPF digitado está correto.
-                                </p>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

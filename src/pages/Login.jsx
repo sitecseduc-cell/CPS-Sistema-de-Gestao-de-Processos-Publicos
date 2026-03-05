@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ImmersiveLoader from '../components/ImmersiveLoader';
 import { DEMO_CREDENTIALS } from '../demo/demoData';
+import { supabase } from '../lib/supabaseClient';
 
 // --- VALIDATION AND FORMS ---
 import { useForm } from 'react-hook-form';
@@ -51,6 +52,34 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Dados Dinâmicos da Convocação
+  const [convocacoesAbertas, setConvocacoesAbertas] = useState([]);
+  const [selectedConvocacao, setSelectedConvocacao] = useState(null);
+
+  useEffect(() => {
+    if (portalMode === 'candidato') {
+      carregarConvocacoesAtivas();
+    }
+  }, [portalMode, candidateTab]);
+
+  const carregarConvocacoesAtivas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('convocacoes_especiais')
+        .select('*')
+        .eq('status', 'aberta')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setConvocacoesAbertas(data || []);
+      if (data && data.length > 0) {
+        setSelectedConvocacao(data[0]); // Seleciona a mais recente por padrão
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const { signIn, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
@@ -122,14 +151,53 @@ export default function Login() {
   };
 
   const onSubmitCandidato = async (data) => {
-    // Simular busca de CPF para candidato
     setLoading(true);
     setGlobalError(null);
+    setSuccessMsg('');
 
-    setTimeout(() => {
+    try {
+      if (!selectedConvocacao) {
+        throw new Error('Não há nenhuma Convocação Aberta selecionada para inscrição.');
+      }
+
+      // Validação: Checar se o CPF existe na base geral (se aplicável)
+      // Como não temos a query exata do PSS base, vamos consultar se ele já está inscrito e inserir.
+
+      const cpfNorm = data.cpf.replace(/\D/g, '');
+      if (cpfNorm.length !== 11) throw new Error("CPF Inválido. Digite 11 números.");
+
+      // BLOQUEIO: Verificar se o CPF está na base de aptos desta convocação
+      const { data: aptosData, error: aptosError } = await supabase
+        .from('candidatos_aptos_convocacao')
+        .select('candidato_cpf')
+        .eq('convocacao_id', selectedConvocacao.id)
+        .eq('candidato_cpf', cpfNorm);
+
+      if (aptosError) throw aptosError;
+
+      if (!aptosData || aptosData.length === 0) {
+        throw new Error('Acesso Negado: Seu CPF não consta na lista de candidatos aptos desta Convocação. Verifique o Edital ou a coordenação.');
+      }
+
+      // Inserir na nova tabela de inscricoes_convocacao
+      const { error } = await supabase.from('inscricoes_convocacao').insert([{
+        convocacao_id: selectedConvocacao.id,
+        candidato_cpf: cpfNorm,
+        dados_inscricao: { telefone: 'Não informado', dt_nascimento: 'Não informada' },
+        status_inscricao: 'inscrito'
+      }]);
+
+      if (error) {
+        if (error.code === '23505') throw new Error('Você já está inscrito nesta Convocação!');
+        throw error;
+      }
+
+      setSuccessMsg('Inscrição confirmada com sucesso! Você pode acompanhar sua situação na tela de "Consultar Processo".');
+    } catch (err) {
+      setGlobalError(err.message || 'Erro ao realizar inscrição.');
+    } finally {
       setLoading(false);
-      setGlobalError('Integração com o banco de dados de candidatos pendente de desenvolvimento.');
-    }, 1500);
+    }
   };
 
   const onSubmit = portalMode === 'gestao' ? onSubmitGestao : onSubmitCandidato;
@@ -382,28 +450,70 @@ export default function Login() {
                       <div>
                         <h4 className="text-sm font-bold text-amber-800 dark:text-amber-300 mb-1">Aviso Importante</h4>
                         <p className="text-xs text-amber-700 dark:text-amber-400/90 leading-relaxed font-medium">
-                          Só poderão ser inscritos candidatos que já constam no processo seletivo em vigor (ex: PSS SEDUC).
-                          <strong> Caso seus dados não sejam encontrados em nosso banco de dados, você não conseguirá concluir a inscrição.</strong>
+                          A participação em Convocações Especiais exige que você esteja na base informada de candidatos <strong>elegíveis/aptos</strong> pelo sistema estadual para o Edital específico.
+                          <strong> Caso seu CPF não tenha sido listado no carregamento de aptos deste edital pela secretaria, a inscrição será bloqueada.</strong>
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Links Rápidos do Edital */}
-                  <div className="grid grid-cols-3 gap-3 mb-6">
-                    <button className="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all group shadow-sm">
-                      <FileText size={18} className="text-slate-400 group-hover:text-emerald-500 mb-1.5" />
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Ver Edital</span>
-                    </button>
-                    <button className="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all group shadow-sm">
-                      <Bell size={18} className="text-slate-400 group-hover:text-emerald-500 mb-1.5" />
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 text-center">Retificações</span>
-                    </button>
-                    <button className="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all group shadow-sm">
-                      <CheckCircle size={18} className="text-slate-400 group-hover:text-emerald-500 mb-1.5" />
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Resultados</span>
-                    </button>
-                  </div>
+                  {/* Seleção e Links Rápidos do Edital */}
+                  {convocacoesAbertas.length === 0 ? (
+                    <div className="bg-slate-100 p-6 rounded-2xl text-center text-slate-500 text-sm font-bold mb-6">
+                      Não há nenhuma Convocação Especial em aberto no momento.
+                    </div>
+                  ) : (
+                    <div className="mb-6 space-y-4">
+                      {convocacoesAbertas.length > 1 && (
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 mb-2">Selecione o Edital:</label>
+                          <select
+                            className="w-full p-3 rounded-xl border border-slate-200 bg-white dark:bg-slate-800 text-sm outline-none"
+                            value={selectedConvocacao?.id || ''}
+                            onChange={(e) => setSelectedConvocacao(convocacoesAbertas.find(c => c.id === e.target.value))}
+                          >
+                            {convocacoesAbertas.map(c => <option key={c.id} value={c.id}>{c.titulo}</option>)}
+                          </select>
+                        </div>
+                      )}
+
+                      {selectedConvocacao && (
+                        <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-800/50">
+                          <h4 className="font-bold text-slate-800 dark:text-emerald-300 text-sm mb-1">{selectedConvocacao.titulo}</h4>
+                          <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">{selectedConvocacao.descricao}</p>
+
+                          <div className="grid grid-cols-3 gap-3">
+                            {selectedConvocacao.link_edital ? (
+                              <a href={selectedConvocacao.link_edital} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/50 transition-all group shadow-sm text-center">
+                                <FileText size={18} className="text-emerald-600 dark:text-emerald-400 mb-1.5" />
+                                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Ler Edital</span>
+                              </a>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 opacity-50 text-center"><FileText size={18} className="text-slate-400 mb-1.5" /><span className="text-[10px] font-bold text-slate-400">Sem Edital</span></div>
+                            )}
+
+                            {selectedConvocacao.link_retificacao ? (
+                              <a href={selectedConvocacao.link_retificacao} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/50 transition-all group shadow-sm text-center">
+                                <Bell size={18} className="text-emerald-600 dark:text-emerald-400 mb-1.5" />
+                                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Retificações</span>
+                              </a>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 opacity-50 text-center"><Bell size={18} className="text-slate-400 mb-1.5" /><span className="text-[10px] font-bold text-slate-400">0 Retificações</span></div>
+                            )}
+
+                            {selectedConvocacao.link_resultado ? (
+                              <a href={selectedConvocacao.link_resultado} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50/50 transition-all group shadow-sm text-center">
+                                <CheckCircle size={18} className="text-emerald-600 dark:text-emerald-400 mb-1.5" />
+                                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Resultados</span>
+                              </a>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 opacity-50 text-center"><CheckCircle size={18} className="text-slate-400 mb-1.5" /><span className="text-[10px] font-bold text-slate-400">Aguardando</span></div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {globalError && (
                     <div className="mb-6 p-4 bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center text-red-600 dark:text-red-400 text-sm animate-fadeIn">

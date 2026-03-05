@@ -58,6 +58,7 @@ next-env.d.ts
 
 # Data files (Safety)
 *.csv
+*.xlsx
 
 # Test scripts (local debug only)
 test_*.js
