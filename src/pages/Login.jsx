@@ -110,195 +110,203 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
 
       {/* Animated Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[100px] animate-float"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-500/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '2s' }}></div>
 
-      <div className="w-full max-w-md glass-card p-8 md:p-10 relative z-10 border border-white/60 dark:border-white/10 shadow-2xl">
+      {/* Main Content Area */}
+      <div className="flex-1 flex items-center justify-center p-4 w-full z-10 mt-8 mb-4">
+        <div className="w-full max-w-md glass-card p-8 md:p-10 relative border border-white/60 dark:border-white/10 shadow-2xl">
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex p-4 rounded-2xl bg-white/50 dark:bg-white/10 shadow-lg shadow-indigo-500/10 mb-6 group hover:scale-105 transition-all duration-300">
-            <Hexagon className="h-12 w-12 text-indigo-600 dark:text-indigo-400 fill-indigo-500/10" />
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex p-4 rounded-2xl bg-white/50 dark:bg-white/10 shadow-lg shadow-indigo-500/10 mb-6 group hover:scale-105 transition-all duration-300">
+              <Hexagon className="h-12 w-12 text-indigo-600 dark:text-indigo-400 fill-indigo-500/10" />
+            </div>
+            <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mb-2">
+              {header.title}
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">
+              {header.subtitle}
+            </p>
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight mb-2">
-            {header.title}
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">
-            {header.subtitle}
-          </p>
-        </div>
 
-        {globalError && (
-          <div className="mb-6 p-4 bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center text-red-600 dark:text-red-400 text-sm animate-fadeIn">
-            <AlertCircle size={20} className="mr-3 flex-shrink-0" />
-            {globalError}
-          </div>
-        )}
+          {globalError && (
+            <div className="mb-6 p-4 bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center text-red-600 dark:text-red-400 text-sm animate-fadeIn">
+              <AlertCircle size={20} className="mr-3 flex-shrink-0" />
+              {globalError}
+            </div>
+          )}
 
-        {successMsg && (
-          <div className="mb-6 p-4 bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-600 dark:text-emerald-400 text-sm font-medium text-center animate-fadeIn">
-            {successMsg}
-          </div>
-        )}
+          {successMsg && (
+            <div className="mb-6 p-4 bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-600 dark:text-emerald-400 text-sm font-medium text-center animate-fadeIn">
+              {successMsg}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fadeIn">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fadeIn">
 
-          {/* Nome (Register Only) */}
-          {view === 'register' && (
-            <div className="group">
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Nome Completo</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                <input
-                  {...register('name')}
-                  type="text"
-                  className={`input-glass w-full pl-12 ${errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
-                  placeholder="Digite seu nome"
-                />
+            {/* Nome (Register Only) */}
+            {view === 'register' && (
+              <div className="group">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Nome Completo</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                  <input
+                    {...register('name')}
+                    type="text"
+                    className={`input-glass w-full pl-12 ${errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
+                    placeholder="Digite seu nome"
+                  />
+                </div>
+                {errors.name && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.name.message}</p>}
               </div>
-              {errors.name && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.name.message}</p>}
-            </div>
-          )}
-
-          {/* Email (All) */}
-          <div className="group">
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">E-mail</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
-              <input
-                {...register('email')}
-                type="email"
-                className={`input-glass w-full pl-12 ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
-                placeholder="nome@exemplo.com"
-              />
-            </div>
-            {errors.email && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.email.message}</p>}
-          </div>
-
-          {/* Password (Login & Register) */}
-          {view !== 'forgot' && (
-            <div className="group">
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Senha</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                <input
-                  {...register('password')}
-                  type="password"
-                  className={`input-glass w-full pl-12 ${errors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.password.message}</p>}
-            </div>
-          )}
-
-          {/* Confirm Password (Register Only) */}
-          {view === 'register' && (
-            <div className="group animate-fadeIn">
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Confirmar Senha</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                <input
-                  {...register('confirmPassword')}
-                  type="password"
-                  className={`input-glass w-full pl-12 ${errors.confirmPassword ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.confirmPassword.message}</p>}
-            </div>
-          )}
-
-          {/* Forgot Password Link */}
-          {view === 'login' && (
-            <div className="flex justify-end">
-              <button type="button" onClick={() => changeView('forgot')} className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline transition-all">
-                Esqueceu a senha?
-              </button>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary-glass w-full py-3.5 flex items-center justify-center text-lg mt-4 disabled:opacity-70 disabled:cursor-not-allowed group"
-          >
-            {loading ? <Loader2 className="animate-spin" /> : (
-              <span className="flex items-center gap-2">
-                {view === 'login' ? 'Acessar' : view === 'register' ? 'Criar Conta' : 'Enviar Link'}
-                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </span>
             )}
-          </button>
-        </form>
 
-
-        {/* Demo/Homologação Access */}
-        {view === 'login' && (
-          <div className="mt-6 pt-5 border-t border-amber-200/60 dark:border-amber-800/30">
-            <div className="bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="bg-amber-400 p-1 rounded-md">
-                  <FlaskConical size={14} className="text-white" />
-                </span>
-                <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
-                  Acesso de Homologação
-                </p>
+            {/* Email (All) */}
+            <div className="group">
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">E-mail</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                <input
+                  {...register('email')}
+                  type="email"
+                  className={`input-glass w-full pl-12 ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
+                  placeholder="nome@exemplo.com"
+                />
               </div>
-              <p className="text-xs text-amber-600 dark:text-amber-500 mb-3">
-                Ambiente de revisão técnica com dados fictícios.
-              </p>
-              <div className="text-xs font-mono bg-white/70 dark:bg-black/20 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-300 mb-3 space-y-1">
-                <div><span className="text-slate-400">e-mail: </span>{DEMO_CREDENTIALS.email}</div>
-                <div><span className="text-slate-400">senha: </span>{DEMO_CREDENTIALS.password}</div>
-              </div>
-              <button
-                type="button"
-                onClick={fillDemoCredentials}
-                className="w-full py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
-              >
-                <FlaskConical size={13} />
-                Preencher Credenciais Demo
-              </button>
+              {errors.email && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.email.message}</p>}
             </div>
-          </div>
-        )}
 
-        {/* Footer Navigation */}
-        <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/10 text-center space-y-4">
-          {view === 'login' && (
-            <>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Ainda não tem conta?{' '}
-                <button onClick={() => changeView('register')} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
-                  Cadastre-se
-                </button>
-              </p>
+            {/* Password (Login & Register) */}
+            {view !== 'forgot' && (
+              <div className="group">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Senha</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                  <input
+                    {...register('password')}
+                    type="password"
+                    className={`input-glass w-full pl-12 ${errors.password ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.password.message}</p>}
+              </div>
+            )}
 
-              <div className="pt-2">
-                <button onClick={() => navigate('/consulta-publica')} className="text-xs font-semibold text-slate-500 hover:text-indigo-600 uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors">
-                  <span className="p-1 rounded bg-slate-100 dark:bg-slate-800"><User size={12} /></span>
-                  Consultar Situação do Candidato
+            {/* Confirm Password (Register Only) */}
+            {view === 'register' && (
+              <div className="group animate-fadeIn">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Confirmar Senha</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                  <input
+                    {...register('confirmPassword')}
+                    type="password"
+                    className={`input-glass w-full pl-12 ${errors.confirmPassword ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : ''}`}
+                    placeholder="••••••••"
+                  />
+                </div>
+                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1.5 ml-1 font-semibold">{errors.confirmPassword.message}</p>}
+              </div>
+            )}
+
+            {/* Forgot Password Link */}
+            {view === 'login' && (
+              <div className="flex justify-end">
+                <button type="button" onClick={() => changeView('forgot')} className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline transition-all">
+                  Esqueceu a senha?
                 </button>
               </div>
-            </>
-          )}
-          {view !== 'login' && (
-            <button onClick={() => changeView('login')} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-semibold flex items-center justify-center mx-auto gap-2 text-sm transition-colors">
-              <ArrowLeft size={16} /> Voltar para Acesso
-            </button>
-          )}
-        </div>
+            )}
 
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary-glass w-full py-3.5 flex items-center justify-center text-lg mt-4 disabled:opacity-70 disabled:cursor-not-allowed group"
+            >
+              {loading ? <Loader2 className="animate-spin" /> : (
+                <span className="flex items-center gap-2">
+                  {view === 'login' ? 'Acessar' : view === 'register' ? 'Criar Conta' : 'Enviar Link'}
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+              )}
+            </button>
+          </form>
+
+
+          {/* Demo/Homologação Access */}
+          {view === 'login' && (
+            <div className="mt-6 pt-5 border-t border-amber-200/60 dark:border-amber-800/30">
+              <div className="bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-amber-400 p-1 rounded-md">
+                    <FlaskConical size={14} className="text-white" />
+                  </span>
+                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                    Acesso de Homologação
+                  </p>
+                </div>
+                <p className="text-xs text-amber-600 dark:text-amber-500 mb-3">
+                  Ambiente de revisão técnica com dados fictícios.
+                </p>
+                <div className="text-xs font-mono bg-white/70 dark:bg-black/20 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-300 mb-3 space-y-1">
+                  <div><span className="text-slate-400">e-mail: </span>{DEMO_CREDENTIALS.email}</div>
+                  <div><span className="text-slate-400">senha: </span>{DEMO_CREDENTIALS.password}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={fillDemoCredentials}
+                  className="w-full py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
+                >
+                  <FlaskConical size={13} />
+                  Preencher Credenciais Demo
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Navigation */}
+          <div className="mt-8 pt-6 border-t border-slate-200/60 dark:border-white/10 text-center space-y-4">
+            {view === 'login' && (
+              <>
+                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  Ainda não tem conta?{' '}
+                  <button onClick={() => changeView('register')} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+                    Cadastre-se
+                  </button>
+                </p>
+
+                <div className="pt-2">
+                  <button onClick={() => navigate('/consulta-publica')} className="text-xs font-semibold text-slate-500 hover:text-indigo-600 uppercase tracking-wider flex items-center justify-center gap-2 mx-auto transition-colors">
+                    <span className="p-1 rounded bg-slate-100 dark:bg-slate-800"><User size={12} /></span>
+                    Consultar Situação do Candidato
+                  </button>
+                </div>
+              </>
+            )}
+            {view !== 'login' && (
+              <button onClick={() => changeView('login')} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-semibold flex items-center justify-center mx-auto gap-2 text-sm transition-colors">
+                <ArrowLeft size={16} /> Voltar para Acesso
+              </button>
+            )}
+          </div>
+
+        </div>
       </div>
 
-      {/* Footer System Info */}
-      <div className="absolute bottom-4 text-center w-full text-[10px] text-slate-400/60 font-medium">
-        &copy; 2026 Sistema de Gestão de Processos Seletivos &bull; Gov. Pará
+      {/* Footer System Info & Credits */}
+      <div className="w-full pb-6 pt-2 text-center flex flex-col items-center justify-center gap-1.5 relative z-20">
+        <span className="text-[10px] text-slate-400/80 font-semibold">
+          &copy; {new Date().getFullYear()} Sistema de Gestão de Processos Seletivos &bull; Gov. Pará
+        </span>
+        <span className="text-[10px] text-slate-500/70 tracking-widest uppercase font-bold drop-shadow-sm">
+          Desenvolvido por Luiz Henrique Barbosa & Luan Giulliano
+        </span>
       </div>
     </div>
   );

@@ -9,37 +9,37 @@ const PARAM_CONFIG = [
         color: 'indigo',
         params: [
             { key: 'limite_pequeno_max', label: 'Pequeno Porte — até N alunos', hint: 'Escolas com até este número são classificadas como Pequeno Porte', min: 100, max: 1500, step: 50, emoji: '🟢' },
-            { key: 'limite_medio_a_max', label: 'Médio Porte (Tipo A) — até N alunos', hint: 'Entre Pequeno Porte e este limite = Médio A', min: 100, max: 2000, step: 50, emoji: '🟡' },
-            { key: 'limite_medio_b_max', label: 'Médio Porte (Tipo B) — até N alunos', hint: 'Entre Médio A e este limite = Médio B. Acima = Grande Porte', min: 100, max: 2000, step: 50, emoji: '🟠' },
+            { key: 'limite_medio_b_max', label: 'Médio Porte — até N alunos', hint: 'Entre Pequeno e este número = Médio Porte. Acima de Médio = Grande Porte', min: 100, max: 2000, step: 50, emoji: '🟡' },
         ]
     },
     {
-        group: 'Alocação de Psicólogos',
+        group: 'Alocação de Psicólogos (Proporção)',
         color: 'violet',
         params: [
-            { key: 'psic_por_escolas_pequenas', label: '1 psicólogo para cada N escolas Pequenas', hint: 'Escolas pequenas são agrupadas. Ex: 3 = um psicólogo cobre 3 escolas pequenas', min: 1, max: 20, step: 1, emoji: '👥' },
-            { key: 'psic_por_escola_medio_a', label: 'Psicólogos por escola Médio A', hint: 'Número fixo de psicólogos por escola de Médio Porte Tipo A', min: 1, max: 5, step: 1, emoji: '🔵' },
-            { key: 'psic_por_escola_medio_b', label: 'Psicólogos por escola Médio B', hint: 'Número fixo de psicólogos por escola de Médio Porte Tipo B', min: 1, max: 5, step: 1, emoji: '🔷' },
-            { key: 'psic_por_alunos_grande', label: '1 psicólogo para cada N alunos (Grande Porte)', hint: 'Para Grande Porte, a alocação é proporcional. Ex: 1000 = 1 psic a cada 1000 alunos', min: 200, max: 3000, step: 100, emoji: '🏫' },
+            { key: 'psic_por_escolas_pequenas', label: '1 psicólogo para cada N escolas (Pequenas/Médias)', hint: 'Escolas pequenas e médias (Rurais e Interior) são agrupadas para compartilhar profissional. Ex: 3', min: 1, max: 20, step: 1, emoji: '👥' },
+            { key: 'psic_por_alunos_grande', label: '1 psicólogo para cada N alunos (Grande Porte)', hint: 'Para escolas de Grande Porte, a alocação é fixa e proporcional. Ex: 1 psicólogo a cada 1000 alunos', min: 200, max: 3000, step: 100, emoji: '🏫' },
         ]
     },
     {
-        group: 'Processo / Meta',
+        group: 'Meta Geral do Edital',
         color: 'emerald',
         params: [
-            { key: 'total_vagas_disponivel', label: 'Total de vagas disponíveis no processo', hint: 'Número total de psicólogos que podem ser convocados neste PSS', min: 1, max: 2000, step: 1, emoji: '🎯' },
+            { key: 'total_vagas_disponivel', label: 'Total de vagas disponíveis', hint: 'Foco de preenchimento voltado para Zona Rural e Cidades de Interior (polos urbanos metropolitanos excluídos).', min: 1, max: 1000, step: 1, emoji: '🎯' },
         ]
     }
 ];
 
 function calcDemandPreview(regra) {
-    // Simulação com dados mock para preview de impacto
-    const MOCK = { qPequeno: 491, qMedioA: 178, qMedioB: 103, qGrande: 75, totalAlunosGrande: 98500 };
-    const nPeq = Math.ceil(MOCK.qPequeno / (regra.psic_por_escolas_pequenas || 3));
-    const nMedA = MOCK.qMedioA * (regra.psic_por_escola_medio_a || 1);
-    const nMedB = MOCK.qMedioB * (regra.psic_por_escola_medio_b || 2);
-    const nGrande = Math.ceil(MOCK.totalAlunosGrande / (regra.psic_por_alunos_grande || 1000));
-    return { nPeq, nMedA, nMedB, nGrande, total: nPeq + nMedA + nMedB + nGrande };
+    // Simulação com dados alinhados às prioridades reais do sistema (Rural + Interior). 
+    // Grandes polos metropolitanos (Belém, Ananindeua, etc) já excluídos desta amostra.
+    const escolasPequenoMedio = 477; // Escolas a serem atendidas por psicólogos compartilhados
+    const alunosGrandePorte = 41000; // Total de alunos em escolas grandes do interior/rural
+
+    // Cálculo seguindo a regra = 1 por cada N escolas (Pq/Médio) e 1 por cada N alunos (Grandes)
+    const nPeqMedio = Math.ceil(escolasPequenoMedio / (regra.psic_por_escolas_pequenas || 3));
+    const nGrande = Math.ceil(alunosGrandePorte / (regra.psic_por_alunos_grande || 1000));
+
+    return { nPeqMedio, nGrande, total: nPeqMedio + nGrande };
 }
 
 export default function MotorRegraTab({ onRegraChanged }) {
@@ -136,18 +136,20 @@ export default function MotorRegraTab({ onRegraChanged }) {
                         <span className="text-5xl font-black">{preview.total}</span>
                         <span className="text-indigo-200">psicólogos necessários</span>
                     </div>
-                    <p className="text-indigo-300 text-xs mt-2">Baseado em amostra demonstrativa (847 escolas). Importe uma planilha real no ETL para cálculo exato.</p>
+                    <p className="text-indigo-200 text-xs mt-2">
+                        <strong>Nota:</strong> Belém, Ananindeua, Marabá e polos urbanos similares <strong>não</strong> entram nesta conta.
+                        <br />
+                        Filtros ativos: Sem Indígena, Quilombola, SOME, CEEJA.
+                    </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 z-10 shrink-0">
                     {[
-                        { label: 'Pequenas', value: preview.nPeq, color: 'bg-emerald-500/30' },
-                        { label: 'Médio A', value: preview.nMedA, color: 'bg-amber-500/30' },
-                        { label: 'Médio B', value: preview.nMedB, color: 'bg-orange-500/30' },
-                        { label: 'Grandes', value: preview.nGrande, color: 'bg-indigo-400/30' },
+                        { label: 'Fixos (Escolas Grandes)', value: preview.nGrande, color: 'bg-indigo-400/30' },
+                        { label: 'Compartilhados (Pq/Médio)', value: preview.nPeqMedio, color: 'bg-emerald-500/30' },
                     ].map(b => (
                         <div key={b.label} className={`${b.color} rounded-xl px-4 py-2 text-center`}>
                             <p className="text-2xl font-black">{b.value}</p>
-                            <p className="text-xs text-indigo-200">{b.label}</p>
+                            <p className="text-[10px] font-bold uppercase text-indigo-100 mt-1">{b.label}</p>
                         </div>
                     ))}
                 </div>
