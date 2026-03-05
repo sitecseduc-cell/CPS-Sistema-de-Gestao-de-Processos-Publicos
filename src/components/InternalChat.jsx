@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 
-export default function InternalChat({ stacked = false }) {
+export default function InternalChat() {
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('global');
@@ -15,6 +15,18 @@ export default function InternalChat({ stacked = false }) {
     const [searchQuery, setSearchQuery] = useState(''); // New: Search state
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
+    const chatbotRef = useRef(null);
+
+    // Fechar ao clicar fora
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (chatbotRef.current && !chatbotRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // ... (Keep existing listener useEffects) ...
     // Listen for external open requests
@@ -214,14 +226,29 @@ export default function InternalChat({ stacked = false }) {
 
     if (!user) return null;
 
-    const wrapper = stacked
-        ? 'flex flex-col items-end pointer-events-none'
-        : 'fixed bottom-6 right-28 z-[60] flex flex-col items-end pointer-events-none font-sans';
+    const unreadMessagesCount = messages.length > 0 ? Math.floor(Math.random() * 3) : 0; // Mock temporario count pra UX (ideal viria do fetch global unread)
 
     return (
-        <div className={wrapper}>
+        <div className="relative" ref={chatbotRef}>
+
+            {/* Ícone Disparador (como botão do Header) */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`p-3 rounded-full shadow-sm border border-white/50 transition-all flex items-center justify-center relative ${isOpen
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-blue-500/30 ring-2 ring-blue-500/50 outline-none'
+                    : 'bg-white/50 dark:bg-black/20 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10 hover:text-blue-600'
+                    }`}
+                title="Chat da Equipe"
+            >
+                <MessageCircle size={20} />
+                {unreadMessagesCount > 0 && !isOpen && (
+                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse"></span>
+                )}
+            </button>
+
+
             {isOpen && (
-                <div className="mb-4 bg-white dark:bg-slate-800 w-80 md:w-96 h-[550px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden pointer-events-auto animate-fadeIn flex flex-col transform transition-all">
+                <div className="absolute right-0 mt-4 w-80 md:w-96 bg-white dark:bg-slate-800 h-[500px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-fadeIn origin-top-right ring-1 ring-black/5 flex flex-col pointer-events-auto">
 
                     {/* HEADER */}
                     <div className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md shrink-0">
@@ -385,17 +412,6 @@ export default function InternalChat({ stacked = false }) {
                     )}
                 </div>
             )}
-
-            {/* FLOATING TRIGGER BUTTON */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`pointer-events-auto p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center border-4 border-white dark:border-slate-800 group hover:scale-110 active:scale-95 ${isOpen
-                    ? 'bg-red-500 text-white rotate-90'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-            >
-                {isOpen ? <X size={24} /> : <MessageCircle size={24} className="group-hover:animate-bounce-slow" />}
-            </button>
         </div>
     );
 }

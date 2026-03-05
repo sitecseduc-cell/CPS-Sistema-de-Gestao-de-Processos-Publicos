@@ -90,53 +90,32 @@ export default function Layout() {
   const fetchNotifications = async () => {
     if (!user) return;
     try {
-      let auditData = [];
-      let chatData = [];
+      const { data, error } = await supabase
+        .from('system_notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(8);
 
-      if (role === 'admin' || role === 'gestor') {
-        const { data } = await supabase
-          .from('audit_logs')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(5);
-        if (data) auditData = data;
+      if (error && error.code === '42P01') {
+        // Tabela não existe ainda
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
       }
 
-      const { data: messages } = await supabase
-        .from('chat_messages')
-        .select(`
-            id, content, created_at, sender_id, receiver_id,
-            sender:profiles!sender_id (full_name)
-        `)
-        .or(`receiver_id.eq.${user.id},receiver_id.is.null`)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (messages) chatData = messages;
-
-      const formattedAudit = auditData.map(log => ({
-        id: `audit-${log.id}`,
-        type: 'audit',
-        text: `${log.operation} em ${log.table_name || 'Sistema'}`,
-        subtext: 'Auditoria do Sistema',
+      const formatted = (data || []).map(log => ({
+        id: log.id,
+        type: log.type,
+        text: log.title,
+        subtext: log.description,
         time: new Date(log.created_at),
-        data: log,
-        unread: false
+        data: log.metadata,
+        unread: !log.is_read
       }));
 
-      const formattedChat = chatData.map(msg => ({
-        id: `chat-${msg.id}`,
-        type: 'chat',
-        text: msg.sender?.full_name ? `Mensagem de ${msg.sender.full_name}` : 'Nova mensagem',
-        subtext: msg.content,
-        time: new Date(msg.created_at),
-        data: msg,
-        unread: true
-      }));
-
-      const combined = [...formattedAudit, ...formattedChat].sort((a, b) => b.time - a.time).slice(0, 8);
-      setNotifications(combined);
-      setUnreadCount(formattedChat.length);
+      setNotifications(formatted);
+      setUnreadCount(formatted.filter(n => n.unread).length);
 
     } catch (error) {
       console.error("Error fetching notifications", error);
@@ -146,38 +125,25 @@ export default function Layout() {
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      // Realtime Subscriptions (Chat & Audit)
+      // Realtime Subscriptions da nova tabela
       const channel = supabase
-        .channel('realtime-notifications')
+        .channel('realtime-system-notifications')
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `receiver_id=eq.${user.id}` },
+          { event: 'INSERT', schema: 'public', table: 'system_notifications', filter: `user_id=eq.${user.id}` },
           (payload) => {
             const newMsg = payload.new;
-            toast.info('Nova mensagem recebida', {
-              description: newMsg.content,
-              icon: <MessageCircle size={18} className="text-indigo-500" />
+            toast.info(newMsg.title, {
+              description: newMsg.description,
+              icon: <Bell size={18} className="text-indigo-500" />
             });
             fetchNotifications();
           }
         )
         .subscribe();
 
-      let adminChannel = null;
-      if (role === 'admin' || role === 'gestor') {
-        adminChannel = supabase
-          .channel('realtime-audits')
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'audit_logs' },
-            (payload) => fetchNotifications()
-          )
-          .subscribe();
-      }
-
       return () => {
         supabase.removeChannel(channel);
-        if (adminChannel) supabase.removeChannel(adminChannel);
       };
     }
   }, [user, showNotifications]);
@@ -191,16 +157,18 @@ export default function Layout() {
     }
   };
 
-  const handleNotificationClick = (notif) => {
+  const handleNotificationClick = async (notif) => {
+    if (notif.unread) {
+      await supabase.from('system_notifications').update({ is_read: true }).eq('id', notif.id);
+      fetchNotifications(); // update bubble
+    }
+
     if (notif.type === 'audit') {
       setSelectedLog(notif.data);
       setIsAuditModalOpen(true);
       setShowNotifications(false);
     } else if (notif.type === 'chat') {
-      const event = new CustomEvent('open-internal-chat', {
-        detail: { userId: notif.data.sender_id }
-      });
-      window.dispatchEvent(event);
+      // Redirecionamento simplificado ou logica futura
       setShowNotifications(false);
     }
   };
@@ -327,11 +295,18 @@ export default function Layout() {
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
+            {/* Internal Chat */}
+            <InternalChat />
+
+            {/* AI Assistant */}
+            <AiChatbot />
+
             {/* Notifications */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-3 text-slate-500 hover:text-indigo-600 bg-white/50 dark:bg-black/20 rounded-full hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm border border-white/50 relative"
+                title="Notificações"
               >
                 <Bell size={20} />
                 {unreadCount > 0 && (
@@ -402,12 +377,7 @@ export default function Layout() {
         </div>
       </main>
 
-      {/* Floating Action Buttons — empilhados verticalmente, canto inferior direito */
-      /* UI/UX: chat da equipe (mais usado) fica abaixo, IA fica acima */}
-      <div className="fixed bottom-6 right-6 z-[60] flex flex-col-reverse items-end gap-3 pointer-events-none">
-        <InternalChat stacked />
-        <AiChatbot stacked />
-      </div>
+      {/* Removido o bloco fixed bottom dos chats pois foram movidos para o Header */}
 
       <AuditDetailsModal
         isOpen={isAuditModalOpen}

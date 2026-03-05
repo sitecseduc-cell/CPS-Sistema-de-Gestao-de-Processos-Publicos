@@ -3,7 +3,7 @@ import { MessageSquare, X, Send, Bot, User, Loader } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { GeminiService } from '../services/GeminiService';
 
-export default function AiChatbot({ stacked = false }) {
+export default function AiChatbot() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         { id: 1, sender: 'bot', text: 'Olá! Sou o Assistente Inteligente do CPS, agora com acesso total aos dados do sistema. Pergunte sobre processos, vagas, candidatos ou auditoria!' }
@@ -11,6 +11,18 @@ export default function AiChatbot({ stacked = false }) {
     const [inputText, setInputText] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef(null);
+    const chatbotRef = useRef(null);
+
+    // Fechar ao clicar fora
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (chatbotRef.current && !chatbotRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -93,16 +105,24 @@ export default function AiChatbot({ stacked = false }) {
         }
     };
 
-    const wrapper = stacked
-        ? 'flex flex-col items-end pointer-events-none'
-        : 'fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none';
-
     return (
-        <div className={wrapper}>
+        <div className="relative" ref={chatbotRef}>
 
-            {/* Janela do Chat */}
+            {/* Ícone Disparador (como botão do Header) */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`p-3 rounded-full shadow-sm border border-white/50 transition-all flex items-center justify-center ${isOpen
+                    ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-indigo-500/30 ring-2 ring-indigo-500/50 outline-none'
+                    : 'bg-white/50 dark:bg-black/20 text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-white/10 hover:text-indigo-800'
+                    }`}
+                title="IA Assistente"
+            >
+                <Bot size={20} className={isOpen ? '' : 'animate-pulse'} />
+            </button>
+
+            {/* Janela do Chat (Dropdown Style) */}
             {isOpen && (
-                <div className="mb-4 bg-white dark:bg-slate-800 w-80 md:w-96 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden pointer-events-auto animate-fadeIn">
+                <div className="absolute right-0 mt-4 w-80 md:w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-fadeIn origin-top-right ring-1 ring-black/5 flex flex-col pointer-events-auto">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex justify-between items-center text-white">
                         <div className="flex items-center gap-2">
@@ -170,17 +190,6 @@ export default function AiChatbot({ stacked = false }) {
                     </form>
                 </div>
             )}
-
-            {/* Botão Flutuante */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`pointer-events-auto p-4 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${isOpen
-                    ? 'bg-red-500 hover:bg-red-600 rotate-90'
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-110 animate-bounce-slow'
-                    } text-white`}
-            >
-                {isOpen ? <X size={24} /> : <Bot size={24} />}
-            </button>
         </div>
     );
 }

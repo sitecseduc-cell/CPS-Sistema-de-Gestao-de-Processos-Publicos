@@ -65,11 +65,11 @@ export default function PublicCandidateSearch() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/30 flex flex-col items-center p-6 relative overflow-hidden">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center p-6 relative overflow-hidden">
 
             {/* Background Decorations */}
-            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[100px] animate-float"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-500/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '2s' }}></div>
 
             {/* Header */}
             <div className="w-full max-w-3xl flex justify-between items-center mb-10 mt-4 relative z-10">
@@ -82,28 +82,32 @@ export default function PublicCandidateSearch() {
                         <p className="text-xs text-slate-500">Consulta de Situação Processual</p>
                     </div>
                 </div>
-                <Link to="/login" className="text-sm font-semibold text-indigo-600 hover:bg-white/50 px-4 py-2 rounded-lg transition-all">
-                    Acesso Administrativo
+                <Link to="/login" className="text-sm font-semibold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 flex items-center gap-2 transition-colors">
+                    <ArrowLeft size={16} /> Voltar para Acesso
                 </Link>
             </div>
 
             {/* Main Search Card */}
-            <div className="w-full max-w-lg bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl rounded-2xl p-8 relative z-10 animate-scaleIn">
+            <div className="w-full max-w-lg glass-card p-8 relative border border-white/60 dark:border-white/10 shadow-2xl z-10 animate-scaleIn">
 
                 <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Consulte sua Situação</h2>
-                    <p className="text-slate-500">Informe seu CPF para verificar o status de sua inscrição e classificação.</p>
+                    <div className="inline-flex p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 shadow-lg shadow-indigo-500/10 mb-4 group hover:scale-105 transition-all duration-300">
+                        <UserCheck className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Consulte sua Situação</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Informe seu CPF para verificar o status de sua inscrição.</p>
                 </div>
 
-                <form onSubmit={handleSearch} className="space-y-4">
+                <form onSubmit={handleSearch} className="space-y-5">
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">CPF DO CANDIDATO</label>
+                        <div className="absolute top-[28px] inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <ShieldCheck className="text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
                         </div>
                         <input
                             type="text"
-                            placeholder="000.000.000-00"
-                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-mono text-lg text-slate-700 placeholder:text-slate-400"
+                            placeholder="Somente números"
+                            className="input-glass w-full pl-12 py-3"
                             value={cpf}
                             onChange={(e) => setCpf(e.target.value)}
                         />
@@ -112,9 +116,13 @@ export default function PublicCandidateSearch() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 transform hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="btn-primary-glass w-full py-3.5 flex items-center justify-center text-base mt-2 disabled:opacity-70 disabled:cursor-not-allowed group"
                     >
-                        {loading ? <Loader2 className="animate-spin" /> : <><Search size={20} /> Consultar Agora</>}
+                        {loading ? <Loader2 className="animate-spin" /> : (
+                            <span className="flex items-center gap-2">
+                                <Search size={18} /> Consultar Agora
+                            </span>
+                        )}
                     </button>
                 </form>
 
@@ -131,50 +139,50 @@ export default function PublicCandidateSearch() {
                         </div>
 
                         {result ? (
-                            <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden group">
+                            <div className="mt-6 bg-white/40 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group shadow-inner">
                                 <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-xl text-xs font-bold border-b border-l uppercase tracking-wider ${getStatusColor(result.status)}`}>
                                     {result.status || 'Em Análise'}
                                 </div>
 
                                 <div className="flex items-start gap-4 mb-4">
-                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-slate-200 text-2xl shadow-sm">
+                                    <div className="w-12 h-12 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-600 text-2xl shadow-sm">
                                         👤
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-slate-800 text-lg">{result.nome}</h3>
-                                        <p className="text-slate-500 text-sm flex items-center gap-1.5">
+                                        <h3 className="font-bold text-slate-800 dark:text-white text-lg">{result.nome}</h3>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-1.5">
                                             <MapPin size={14} /> {result.municipio} / {result.dre}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-100">
-                                        <span className="text-sm text-slate-500">Cargo</span>
-                                        <span className="font-semibold text-slate-700">{result.cargo || result.vaga}</span>
+                                    <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
+                                        <span className="text-sm text-slate-500 dark:text-slate-400">Cargo</span>
+                                        <span className="font-semibold text-slate-700 dark:text-slate-200">{result.cargo || result.vaga}</span>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-100">
-                                        <span className="text-sm text-slate-500">Nota Final</span>
-                                        <span className="font-bold text-indigo-600 text-lg flex items-center gap-1">
+                                    <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700">
+                                        <span className="text-sm text-slate-500 dark:text-slate-400">Nota Final</span>
+                                        <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg flex items-center gap-1">
                                             <Award size={16} /> {result.pontuacao || '0.0'}
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 pt-4 border-t border-dashed border-slate-200">
+                                <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
                                     <p className="text-xs text-center text-slate-400">
                                         Última atualização: {new Date(result.created_at || Date.now()).toLocaleDateString()}
                                     </p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="mt-6 text-center py-8 bg-slate-50 rounded-2xl border border-slate-100">
-                                <div className="inline-flex p-3 bg-white rounded-full text-slate-400 mb-3 shadow-sm">
+                            <div className="mt-6 text-center py-6 bg-white/40 dark:bg-slate-800/40 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+                                <div className="inline-flex p-3 bg-white dark:bg-slate-800 rounded-full text-slate-400 mb-3 shadow-sm border border-slate-100 dark:border-slate-700">
                                     <AlertCircle size={24} />
                                 </div>
-                                <h3 className="text-slate-800 font-bold">Nenhum registro encontrado</h3>
-                                <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
-                                    Verifique se o CPF foi digitado corretamente ou se sua inscrição já foi processada.
+                                <h3 className="text-slate-800 dark:text-white font-bold">Nenhum registro encontrado</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                                    Verifique se o CPF digitado está correto.
                                 </p>
                             </div>
                         )}
