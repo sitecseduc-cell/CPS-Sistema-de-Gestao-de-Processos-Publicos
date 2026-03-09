@@ -11,7 +11,11 @@ import {
 
 import GestaoTab from '../components/convocacao/GestaoTab';
 import MotorRegraTab from '../components/convocacao/MotorRegraTab';
-import { fetchRegraAtiva, fetchEscolasBase } from '../services/psicologoService';
+import {
+    fetchRegraAtiva, fetchEscolasBase,
+    fetchPsicologosPendentes, updateConvocacaoPsicologo,
+    bulkInsertConvocacoesPsicologo
+} from '../services/psicologoService';
 import { read, utils } from 'xlsx';
 import { toast } from 'sonner';
 
@@ -31,6 +35,134 @@ const COLORS_PORTE = {
     'Pequeno Porte': '#10B981', 'Médio Porte (Tipo A)': '#F59E0B',
     'Médio Porte (Tipo B)': '#F97316', 'Grande Porte': '#6366F1'
 };
+
+// ─── Modal Detalhes da Escola ────────────────────────────────────────────────
+function EscolaDetalhesModal({ escola, isOpen, onClose, onAssigned }) {
+    const [candidatos, setCandidatos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedCandidato, setSelectedCandidato] = useState('');
+    const [assigning, setAssigning] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        setLoading(true);
+        fetchPsicologosPendentes()
+            .then(setCandidatos)
+            .catch(() => toast.error('Erro ao buscar candidatos pendentes.'))
+            .finally(() => setLoading(false));
+    }, [isOpen]);
+
+    if (!isOpen || !escola) return null;
+
+    const handleAssign = async () => {
+        if (!selectedCandidato) {
+            toast.error('Selecione um candidato primeiro.');
+            return;
+        }
+
+        setAssigning(true);
+        try {
+            await updateConvocacaoPsicologo(selectedCandidato, {
+                escola_destino: escola.nome_escola || escola.NOME_ESCOLA,
+                municipio: escola.municipio || escola.MUNICIPIO,
+                dre: escola.dre || escola.DRE,
+                escola_id: escola.id || null,
+                status: 'Em Análise' // ou 'Convocado' dependendo do fluxo
+            });
+            toast.success('Psicólogo associado com sucesso!');
+            setSelectedCandidato('');
+            onAssigned();
+            onClose();
+        } catch (err) {
+            console.error(err);
+            toast.error('Erro ao associar psicólogo.');
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-gradient-to-r from-indigo-50 to-violet-50 rounded-t-3xl">
+                    <div className="flex gap-4">
+                        <div className="p-3 bg-white rounded-2xl shadow-sm text-indigo-600 shrink-0">
+                            <School size={28} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-slate-800 leading-tight">{escola.nome_escola || escola.NOME_ESCOLA}</h3>
+                            <div className="flex items-center gap-3 mt-2 text-sm font-medium text-slate-500">
+                                <span className="flex items-center gap-1 opacity-90"><MapPin size={14} /> {escola.municipio || escola.MUNICIPIO}</span>
+                                {escola.dre && <span className="flex items-center gap-1 opacity-90"><Target size={14} /> {escola.dre || escola.DRE}</span>}
+                            </div>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-white transition-colors shadow-sm bg-white/50"><XCircle size={24} /></button>
+                </div>
+
+                <div className="p-6 overflow-y-auto space-y-6">
+                    {/* Indicadores */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col items-center text-center">
+                            <GraduationCap className="text-violet-500 mb-2" size={20} />
+                            <span className="text-xs font-bold text-slate-500 uppercase">Alunos</span>
+                            <span className="text-lg font-black text-slate-800">{escola.total_alunos || 0}</span>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col items-center text-center">
+                            <Building2 className="text-emerald-500 mb-2" size={20} />
+                            <span className="text-xs font-bold text-slate-500 uppercase">Porte</span>
+                            <span className="text-sm font-black text-slate-800 mt-1">{escola.porte || 'N/A'}</span>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col items-center text-center">
+                            <Users className={escola.psicologos_display === 0 ? 'text-red-500 mb-2' : 'text-indigo-500 mb-2'} size={20} />
+                            <span className="text-xs font-bold text-slate-500 uppercase">Psicólogos</span>
+                            <span className="text-sm font-black text-slate-800 mt-1">{escola.psicologos_display}</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="font-bold text-indigo-900 flex items-center gap-2"><Users size={18} /> Associar Psicólogo</h4>
+                            <span className="text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md">{candidatos.length} disponíveis</span>
+                        </div>
+
+                        {loading ? (
+                            <div className="text-center py-4 text-indigo-400 text-sm font-medium flex justify-center items-center gap-2">
+                                <div className="w-4 h-4 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin" /> Carregando candidatos...
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <select
+                                    className="w-full p-3 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm text-slate-700 shadow-sm"
+                                    value={selectedCandidato}
+                                    onChange={(e) => setSelectedCandidato(e.target.value)}
+                                >
+                                    <option value="">Selecione um candidato (Pendente/Em Análise)...</option>
+                                    {candidatos.map(c => (
+                                        <option key={c.id} value={c.id}>
+                                            #{c.classificacao || '--'} - {c.candidato_nome} ({c.status})
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    onClick={handleAssign}
+                                    disabled={!selectedCandidato || assigning}
+                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex justify-center items-center gap-2"
+                                >
+                                    {assigning ? (
+                                        <><div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" /> Salvando...</>
+                                    ) : (
+                                        <><CheckCircle size={18} /> Confirmar Associação</>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 // ─── Visão Geral (Dashboards de KPIs) ────────────────────────────────────────
 function VisaoGeralTab({ summary, dreData, isMock, onGoToAnalise }) {
@@ -90,7 +222,7 @@ function VisaoGeralTab({ summary, dreData, isMock, onGoToAnalise }) {
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 lg:col-span-2 flex flex-col h-[420px]">
                     <h3 className="text-base font-bold text-slate-800 mb-1 flex items-center gap-2"><PieChartIcon className="text-indigo-500" size={18} />Distribuição por Porte</h3>
                     <p className="text-sm text-slate-400 mb-6">Classificação das unidades escolares (Filtros aplicados)</p>
-                    <div className="flex-1">
+                    <div className="flex-1 w-full min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie data={portePieData} innerRadius={80} outerRadius={120} paddingAngle={4} dataKey="value" stroke="none">
@@ -106,7 +238,7 @@ function VisaoGeralTab({ summary, dreData, isMock, onGoToAnalise }) {
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 lg:col-span-3 flex flex-col h-[420px]">
                     <h3 className="text-base font-bold text-slate-800 mb-1 flex items-center gap-2"><TrendingUp className="text-violet-500" size={18} />Top Regiões/DRE (por Alunos)</h3>
                     <p className="text-sm text-slate-400 mb-6">Volume de matrículas por Diretoria</p>
-                    <div className="flex-1">
+                    <div className="flex-1 w-full min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={dreData} layout="vertical" margin={{ left: 10 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f8fafc" />
@@ -128,6 +260,7 @@ function VisaoGeralTab({ summary, dreData, isMock, onGoToAnalise }) {
 function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
     const r = summary;
     const [pesquisa, setPesquisa] = useState('');
+    const [escolaSelecionada, setEscolaSelecionada] = useState(null);
 
     const rankingEscolas = useMemo(() => {
         if (!escolas || escolas.length === 0) return [];
@@ -292,8 +425,8 @@ function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
                             </div>
                         ) : (
                             displayLista.map((esc, idx) => (
-                                <div key={idx} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-4 relative overflow-hidden group">
-                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: esc.nivel === 1 ? '#10B981' : esc.nivel === 2 ? '#F59E0B' : '#94A3B8' }} />
+                                <div key={idx} onClick={() => setEscolaSelecionada(esc)} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex flex-col sm:flex-row items-start sm:items-center gap-4 relative overflow-hidden group cursor-pointer">
+                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80 group-hover:opacity-100 group-hover:w-2 transition-all" style={{ backgroundColor: esc.nivel === 1 ? '#10B981' : esc.nivel === 2 ? '#F59E0B' : '#94A3B8' }} />
 
                                     <div className="flex-1 min-w-0 pl-3">
                                         <div className="flex items-center gap-2 mb-1.5">
@@ -318,6 +451,16 @@ function AnaliseTab({ summary, escolas, isMock, onGoToETL }) {
                     </div>
                 </div>
             </div>
+
+            {/* MODAL DE DETALHES E ASSOCIAÇÃO */}
+            <EscolaDetalhesModal
+                escola={escolaSelecionada}
+                isOpen={!!escolaSelecionada}
+                onClose={() => setEscolaSelecionada(null)}
+                onAssigned={() => {
+                    // Opcional: Atualizar a listagem ou exibir alguma mensagem adicional
+                }}
+            />
         </div>
     );
 }

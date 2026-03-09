@@ -60,6 +60,28 @@ export const deleteConvocacaoPsicologo = async (id) => {
     return true;
 };
 
+/** Busca psicólogos disponíveis (Pendente ou Em Análise) */
+export const fetchPsicologosPendentes = async () => {
+    const { data, error } = await supabase
+        .from('convocacoes_psicologo')
+        .select('*')
+        .in('status', ['Pendente', 'Em Análise'])
+        .order('classificacao', { ascending: true, nullsFirst: false });
+
+    if (error) throw error;
+    return data || [];
+};
+
+/** Insere lote de psicólogos (upload Excel) */
+export const bulkInsertConvocacoesPsicologo = async (candidatos) => {
+    const { data, error } = await supabase
+        .from('convocacoes_psicologo')
+        .insert(candidatos)
+        .select();
+    if (error) throw error;
+    return data || [];
+};
+
 /** Resumo por status */
 export const fetchConvocacoesResumo = async () => {
     const { data, error } = await supabase

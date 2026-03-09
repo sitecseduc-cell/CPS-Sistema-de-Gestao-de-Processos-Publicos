@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import {
     Plus, Search, Download, Edit, Trash, Loader2,
     Users, CheckCircle, Clock, AlertTriangle, X,
-    UploadCloud, ArrowRight, Target, TrendingUp
+    UploadCloud, ArrowRight, Target, TrendingUp, Undo2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import {
     fetchConvocacoesPsicologo, createConvocacaoPsicologo,
-    updateConvocacaoPsicologo, deleteConvocacaoPsicologo
+    updateConvocacaoPsicologo, deleteConvocacaoPsicologo,
+    bulkInsertConvocacoesPsicologo, fetchConvocacoesResumo
 } from '../../services/psicologoService';
 
 const STATUS_PIPELINE = ['Pendente', 'Em Análise', 'Convocado', 'Empossado', 'Desistente'];
@@ -136,17 +137,27 @@ function ConvocacaoModal({ isOpen, onClose, onSave, editingData }) {
 // --- Tab Principal ---
 export default function GestaoTab({ metaVagas = 200 }) {
     const [convocacoes, setConvocacoes] = useState([]);
+    const [summary, setSummary] = useState({ Pendente: 0, 'Em Análise': 0, Convocado: 0, Empossado: 0, Desistente: 0, Substituído: 0, Total: 0 });
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFiltro, setStatusFiltro] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => { load(); }, [search, statusFiltro]);
 
     const load = async () => {
         setLoading(true);
-        try { setConvocacoes(await fetchConvocacoesPsicologo({ search, status: statusFiltro })); }
+        try {
+            const [lista, res] = await Promise.all([
+                fetchConvocacoesPsicologo({ search, status: statusFiltro }),
+                fetchConvocacoesResumo()
+            ]);
+            setConvocacoes(lista);
+            const total = Object.values(res).reduce((a, b) => a + b, 0);
+            setSummary({ ...res, Total: total });
+        }
         catch { toast.error('Verifique se o SQL foi executado no Supabase.'); }
         finally { setLoading(false); }
     };
@@ -155,6 +166,16 @@ export default function GestaoTab({ metaVagas = 200 }) {
         if (!window.confirm('Excluir esta convocação?')) return;
         try { await deleteConvocacaoPsicologo(id); toast.success('Excluído.'); load(); }
         catch { toast.error('Erro ao excluir.'); }
+    };
+
+    const handleTramitar = async (id, novoStatus) => {
+        try {
+            await updateConvocacaoPsicologo(id, { status: novoStatus });
+            toast.success(`Candidato atualizado para ${novoStatus}!`);
+            load();
+        } catch (err) {
+            toast.error('Erro ao atualizar status.');
+        }
     };
 
     const handleExport = () => {
@@ -172,13 +193,70 @@ export default function GestaoTab({ metaVagas = 200 }) {
         toast.success('Excel exportado!');
     };
 
+    const handleFileUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+            try {
+                const data = evt.target.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                const firstSheet = workbook.SheetNames[0];
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { defval: '' });
+
+                const mapKeys = (row, possibleKeys) => {
+                    const keys = Object.keys(row);
+                    const k = keys.find(kl => possibleKeys.some(tag => kl.toLowerCase().includes(tag)));
+                    return k ? row[k] : null;
+                };
+
+                const candidatos = [];
+                for (const row of rows) {
+                    const nome = mapKeys(row, ['nome', 'candidato']);
+                    const cpf = mapKeys(row, ['cpf']);
+                    const email = mapKeys(row, ['email', 'e-mail']);
+                    const telefone = mapKeys(row, ['telefone', 'celular', 'contato']);
+                    const classificacao = mapKeys(row, ['classifica', 'posição', 'posicao']);
+
+                    if (!nome) continue;
+
+                    candidatos.push({
+                        candidato_nome: String(nome).trim(),
+                        candidato_cpf: cpf ? String(cpf).trim() : 'Não informado',
+                        candidato_email: email ? String(email).trim() : '',
+                        candidato_telefone: telefone ? String(telefone).trim() : '',
+                        classificacao: classificacao ? Number(classificacao) : 0,
+                        status: 'Pendente'
+                    });
+                }
+
+                if (candidatos.length === 0) {
+                    toast.error("Nenhum candidato encontrado. Colunas esperadas: Nome, CPF, Email...");
+                    return;
+                }
+
+                await bulkInsertConvocacoesPsicologo(candidatos);
+                toast.success(`${candidatos.length} aprovados importados com sucesso!`);
+                load();
+            } catch (err) {
+                console.error(err);
+                toast.error("Erro ao importar a planilha de aprovados.");
+            } finally {
+                setUploading(false);
+            }
+        };
+        reader.readAsBinaryString(file);
+    };
+
     // KPIs
-    const byStatus = (s) => convocacoes.filter(c => c.status === s).length;
+    const byStatus = (s) => summary[s] || 0;
     const empossados = byStatus('Empossado');
     const convocados = byStatus('Convocado');
     const pendentes = byStatus('Pendente') + byStatus('Em Análise');
     const desistentes = byStatus('Desistente');
-    const taxaAceite = convocacoes.length > 0 ? Math.round((empossados / convocacoes.length) * 100) : 0;
+    const taxaAceite = summary.Total > 0 ? Math.round((empossados / summary.Total) * 100) : 0;
     const pctMeta = Math.min(100, Math.round((empossados / metaVagas) * 100));
 
     return (
@@ -186,7 +264,7 @@ export default function GestaoTab({ metaVagas = 200 }) {
             {/* KPIs */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                 {[
-                    { label: 'Total', value: convocacoes.length, color: 'indigo', Icon: Users },
+                    { label: 'Total', value: summary.Total, color: 'indigo', Icon: Users },
                     { label: 'Pendentes', value: pendentes, color: 'slate', Icon: Clock },
                     { label: 'Convocados', value: convocados, color: 'amber', Icon: ArrowRight },
                     { label: 'Empossados', value: empossados, color: 'emerald', Icon: CheckCircle },
@@ -259,8 +337,13 @@ export default function GestaoTab({ metaVagas = 200 }) {
                     </select>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={handleExport} className="flex items-center gap-2 bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl font-bold hover:bg-slate-200 transition-colors shadow-sm text-sm"><Download size={16} />Exportar</button>
-                    <button onClick={() => { setEditing(null); setShowModal(true); }} className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-sm text-sm hover:shadow-lg hover:shadow-indigo-500/30"><Plus size={16} />Nova Convocação</button>
+                    <label className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold shadow-sm text-sm transition-colors cursor-pointer ${uploading ? 'bg-indigo-100 text-indigo-400 cursor-not-allowed' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'}`}>
+                        {uploading ? <Loader2 size={16} className="animate-spin" /> : <UploadCloud size={16} />}
+                        <span className="hidden sm:inline">Upload Aprovados (CSV/Excel)</span>
+                        <input type="file" accept=".xlsx, .xls, .csv" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+                    </label>
+                    <button onClick={handleExport} className="flex items-center gap-2 bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl font-bold hover:bg-slate-200 transition-colors shadow-sm text-sm"><Download size={16} /><span className="hidden sm:inline">Exportar</span></button>
+                    <button onClick={() => { setEditing(null); setShowModal(true); }} className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-2.5 rounded-xl font-bold shadow-sm text-sm hover:shadow-lg hover:shadow-indigo-500/30"><Plus size={16} /><span className="hidden sm:inline">Nova Convocação</span></button>
                 </div>
             </div>
 
@@ -303,8 +386,23 @@ export default function GestaoTab({ metaVagas = 200 }) {
                                     <td className="px-5 py-4 text-slate-500">{item.data_convocacao ? new Date(item.data_convocacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
                                     <td className="px-5 py-4 text-right">
                                         <div className="flex justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => { setEditing(item); setShowModal(true); }} className="p-2 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 rounded-lg shadow-sm"><Edit size={14} /></button>
-                                            <button onClick={() => handleDelete(item.id)} className="p-2 bg-white border border-slate-200 hover:border-red-300 hover:text-red-500 rounded-lg shadow-sm"><Trash size={14} /></button>
+                                            {item.status === 'Em Análise' && (
+                                                <>
+                                                    <button onClick={() => handleTramitar(item.id, 'Pendente')} title="Voltar para Pendente" className="p-2 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-600 rounded-lg shadow-sm transition-colors"><Undo2 size={14} /></button>
+                                                    <button onClick={() => handleTramitar(item.id, 'Convocado')} title="Avançar para Convocado" className="p-2 bg-white border border-slate-200 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 rounded-lg shadow-sm transition-colors"><ArrowRight size={14} /></button>
+                                                </>
+                                            )}
+                                            {item.status === 'Convocado' && (
+                                                <>
+                                                    <button onClick={() => handleTramitar(item.id, 'Em Análise')} title="Voltar para Em Análise" className="p-2 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 rounded-lg shadow-sm transition-colors"><Undo2 size={14} /></button>
+                                                    <button onClick={() => handleTramitar(item.id, 'Empossado')} title="Avançar para Empossado" className="p-2 bg-white border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg shadow-sm transition-colors"><CheckCircle size={14} /></button>
+                                                </>
+                                            )}
+                                            {item.status === 'Empossado' && (
+                                                <button onClick={() => handleTramitar(item.id, 'Convocado')} title="Reverter Posse (Voltar p/ Convocado)" className="p-2 bg-white border border-slate-200 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 rounded-lg shadow-sm transition-colors"><Undo2 size={14} /></button>
+                                            )}
+                                            <button onClick={() => { setEditing(item); setShowModal(true); }} title="Editar" className="p-2 bg-white border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 rounded-lg shadow-sm transition-colors"><Edit size={14} /></button>
+                                            <button onClick={() => handleDelete(item.id)} title="Excluir" className="p-2 bg-white border border-slate-200 hover:border-red-300 hover:text-red-500 rounded-lg shadow-sm transition-colors"><Trash size={14} /></button>
                                         </div>
                                     </td>
                                 </tr>
